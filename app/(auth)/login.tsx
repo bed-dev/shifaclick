@@ -27,7 +27,7 @@ export default function LoginScreen() {
     try {
       setError(null);
       await login(email, password);
-      router.replace('/(tabs)/feed');
+      router.replace('/');
     } catch (loginError) {
       const message = loginError instanceof Error ? loginError.message : 'Unable to sign in.';
       setError(message);

@@ -6,11 +6,13 @@ import { useAuth } from '@/src/context/AuthContext';
 import { colors, typography } from '@/src/theme/tokens';
 
 export default function TabLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/login" />;
   }
+
+  const isPharmacist = user?.role === 'pharmacist';
 
   return (
     <Tabs
@@ -36,15 +38,40 @@ export default function TabLayout() {
       <Tabs.Screen
         name="feed"
         options={{
-          title: 'Feed',
-          tabBarIcon: ({ color }) => <Ionicons size={22} name="grid-outline" color={color} />,
+          href: isPharmacist ? null : undefined,
+          title: 'Search',
+          tabBarIcon: ({ color }) => <Ionicons size={22} name="search-outline" color={color} />,
         }}
       />
       <Tabs.Screen
         name="activity"
         options={{
-          title: 'Activity',
-          tabBarIcon: ({ color }) => <Ionicons size={22} name="time-outline" color={color} />,
+          href: isPharmacist ? null : undefined,
+          title: 'Requests',
+          tabBarIcon: ({ color }) => <Ionicons size={22} name="document-text-outline" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="pharmacist"
+        options={{
+          href: isPharmacist ? undefined : null,
+          title: 'Demand',
+          tabBarIcon: ({ color }) => <Ionicons size={22} name="pulse-outline" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="scanner"
+        options={{
+          href: isPharmacist ? undefined : null,
+          title: 'Scanner',
+          tabBarIcon: ({ color }) => <Ionicons size={22} name="barcode-outline" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Alerts',
+          tabBarIcon: ({ color }) => <Ionicons size={22} name="notifications-outline" color={color} />,
         }}
       />
       <Tabs.Screen

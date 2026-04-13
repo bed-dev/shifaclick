@@ -1,177 +1,170 @@
 import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { ContentCard } from '@/components/common/ContentCard';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { useFeed } from '@/src/hooks/useFeed';
+import { FilterSheet } from '@/components/pharmacy/FilterSheet';
+import { MapPreview } from '@/components/pharmacy/MapPreview';
+import { PharmacyCard } from '@/components/pharmacy/PharmacyCard';
+import { SkeletonBlock } from '@/components/pharmacy/SkeletonBlock';
+import { StockBadge } from '@/components/pharmacy/StockBadge';
+import { useDrugSearch } from '@/src/hooks/usePharmacy';
 import { colors, radius, spacing, typography } from '@/src/theme/tokens';
+import type { PharmacyMatch, SearchFilters } from '@/src/types/pharmacy';
 
-export default function FeedScreen() {
-  const [search, setSearch] = useState('');
-  const { data, isLoading, error, refetch } = useFeed();
+const DEFAULT_FILTERS: SearchFilters = {
+  maxDistanceKm: 5,
+  onlyOpenNow: false,
+  inStockOnly: false,
+};
 
-  const filteredItems = useMemo(() => {
-    if (!data?.featured) {
+export default function PatientHomeScreen() {
+  const [search, setSearch] = useState('Doliprane');
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [sheetVisible, setSheetVisible] = useState(false);
+  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
+  const [activePharmacy, setActivePharmacy] = useState<PharmacyMatch | null>(null);
+
+  const { data, isLoading, error } = useDrugSearch(search, filters);
+
+  const firstDrug = data?.[0] ?? null;
+
+  const mapPoints = useMemo(() => {
+    if (!data?.length) {
       return [];
     }
 
-    const searchValue = search.trim().toLowerCase();
-
-    if (!searchValue) {
-      return data.featured;
-    }
-
-    return data.featured.filter((item) => {
-      return (
-        item.medicineName.toLowerCase().includes(searchValue) ||
-        item.category.toLowerCase().includes(searchValue) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(searchValue))
-      );
-    });
-  }, [data, search]);
-
-  if (isLoading) {
-    return (
-      <ScreenWrapper>
-        <View style={styles.centerState}>
-          <ActivityIndicator size="small" color={colors.brand.aqua} />
-          <Text style={styles.stateText}>Loading medicine feed…</Text>
-        </View>
-      </ScreenWrapper>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenWrapper>
-        <View style={styles.centerState}>
-          <Text style={styles.errorTitle}>Could not load feed</Text>
-          <Text style={styles.stateText}>{error}</Text>
-          <Pressable onPress={refetch} style={styles.retryButton}>
-            <Text style={styles.retryText}>Retry</Text>
-          </Pressable>
-        </View>
-      </ScreenWrapper>
-    );
-  }
+    return data.flatMap((drug) => drug.matches);
+  }, [data]);
 
   return (
-    <ScreenWrapper padded={false}>
-      <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <View style={styles.headerWrap}>
-            <View style={styles.heroCard}>
-              <Text style={styles.heroBadge}>Algeria medicine finder</Text>
-              <Text style={styles.heroTitle}>Find your medicines in a click</Text>
-              <Text style={styles.heroSubtitle}>
-                Mobile adaptation of the Django dashboard with mocked API responses.
-              </Text>
-            </View>
+    <ScreenWrapper>
+      <View style={styles.headerWrap}>
+        <Text style={styles.title}>Find medicines nearby</Text>
+        <Text style={styles.subtitle}>Fast stock visibility for patients with pharmacy-level status.</Text>
 
-            <View style={styles.searchWrap}>
-              <Ionicons name="search-outline" size={16} color={colors.text.muted} />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Search medicine name, category, or tag"
-                placeholderTextColor={colors.text.muted}
-                style={styles.searchInput}
-              />
-            </View>
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={18} color={colors.text.muted} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search drug or brand"
+            placeholderTextColor={colors.text.muted}
+            style={styles.searchInput}
+            accessibilityLabel="Search medicine"
+          />
+          <Pressable onPress={() => setSheetVisible(true)} style={styles.filterButton}>
+            <Ionicons name="options-outline" size={16} color={colors.brand.aqua} />
+          </Pressable>
+        </View>
 
-            <Text style={styles.sectionTitle}>Nearby pharmacies</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-              {data?.nearbyPharmacies.map((pharmacy) => (
-                <View key={pharmacy.id} style={styles.pharmacyChip}>
-                  <Text style={styles.pharmacyChipName}>{pharmacy.name}</Text>
-                  <Text style={styles.pharmacyChipMeta}>
-                    {pharmacy.distanceKm} km · {pharmacy.status === 'open' ? 'Open' : 'Closing soon'}
-                  </Text>
+        <View style={styles.modeToggle}>
+          <Segment active={viewMode === 'map'} label="Map View" onPress={() => setViewMode('map')} />
+          <Segment active={viewMode === 'list'} label="List View" onPress={() => setViewMode('list')} />
+        </View>
+      </View>
+
+      {isLoading ? (
+        <View style={styles.loadingWrap}>
+          <SkeletonBlock height={250} />
+          <SkeletonBlock height={102} />
+          <SkeletonBlock height={102} />
+        </View>
+      ) : null}
+
+      {!isLoading && error ? (
+        <View style={styles.centerCard}>
+          <Text style={styles.errorTitle}>Unable to load search results</Text>
+          <Text style={styles.errorBody}>{error}</Text>
+        </View>
+      ) : null}
+
+      {!isLoading && !error ? (
+        <>
+          <View style={styles.drugHeader}>
+            <Text style={styles.drugName}>
+              {firstDrug ? `${firstDrug.name} ${firstDrug.dosage}` : 'No matching medicines'}
+            </Text>
+            {firstDrug ? <StockBadge status={firstDrug.stockStatus} /> : null}
+          </View>
+
+          {viewMode === 'map' ? (
+            <View style={styles.mapWrap}>
+              {mapPoints.length ? (
+                <MapPreview points={mapPoints} onSelect={setActivePharmacy} />
+              ) : (
+                <View style={styles.centerCard}>
+                  <Text style={styles.emptyTitle}>No pharmacy matches</Text>
+                  <Text style={styles.emptyBody}>Try broadening your filters or search term.</Text>
                 </View>
-              ))}
-            </ScrollView>
+              )}
 
-            <Text style={styles.sectionTitle}>Browse medicines</Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <ContentCard item={item} onPress={() => router.push(`/item/${item.id}`)} />
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyTitle}>No result for your search</Text>
-            <Text style={styles.emptyText}>Try another medicine name or clear filters.</Text>
-          </View>
-        }
+              {activePharmacy ? (
+                <PharmacyCard
+                  pharmacy={activePharmacy}
+                  onPress={() => firstDrug && router.push(`/item/${firstDrug.id}`)}
+                />
+              ) : null}
+            </View>
+          ) : (
+            <FlatList
+              data={firstDrug?.matches ?? []}
+              keyExtractor={(item) => item.pharmacyId}
+              contentContainerStyle={styles.listContent}
+              renderItem={({ item }) => (
+                <PharmacyCard pharmacy={item} onPress={() => firstDrug && router.push(`/item/${firstDrug.id}`)} />
+              )}
+              ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
+            />
+          )}
+        </>
+      ) : null}
+
+      <FilterSheet
+        visible={sheetVisible}
+        value={filters}
+        onClose={() => setSheetVisible(false)}
+        onApply={(next) => {
+          setFilters(next);
+          setSheetVisible(false);
+        }}
       />
     </ScreenWrapper>
   );
 }
 
+function Segment({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={[styles.segment, active && styles.segmentActive]}>
+      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  listContent: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xl,
-  },
   headerWrap: {
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-    paddingTop: spacing.sm,
+    gap: spacing.sm,
+    marginTop: spacing.xs,
   },
-  heroCard: {
-    borderRadius: radius.xl,
-    backgroundColor: colors.brand.navy,
-    padding: spacing.lg,
-    gap: spacing.xs,
-  },
-  heroBadge: {
-    alignSelf: 'flex-start',
-    color: colors.brand.aqua,
-    borderWidth: 1,
-    borderColor: '#3CA4AC66',
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 5,
-    fontSize: 10,
+  title: {
+    color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.7,
-  },
-  heroTitle: {
-    color: '#fff',
-    fontFamily: typography.fontFamily,
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 28,
     fontWeight: '800',
   },
-  heroSubtitle: {
-    color: '#CBD5E1',
+  subtitle: {
+    color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 20,
   },
-  searchWrap: {
-    minHeight: 48,
+  searchBar: {
+    minHeight: 50,
     borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.surface.border,
-    backgroundColor: colors.surface.card,
+    borderWidth: 1,
+    borderColor: '#C9DCE9',
+    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
@@ -179,55 +172,83 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 14,
-  },
-  sectionTitle: {
     color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  chipRow: {
-    gap: spacing.sm,
-  },
-  pharmacyChip: {
-    minHeight: 58,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface.card,
-    borderWidth: 1,
-    borderColor: colors.surface.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+  filterButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 164,
+    backgroundColor: '#EAF7FA',
   },
-  pharmacyChipName: {
-    color: colors.text.primary,
+  modeToggle: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  segment: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#C8DEEA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F6FBFF',
+  },
+  segmentActive: {
+    borderColor: colors.brand.aqua,
+    backgroundColor: '#DBF2F5',
+  },
+  segmentText: {
+    color: colors.text.secondary,
     fontFamily: typography.fontFamily,
     fontSize: 13,
     fontWeight: '700',
   },
-  pharmacyChipMeta: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 12,
-    marginTop: 2,
+  segmentTextActive: {
+    color: colors.brand.aqua,
   },
-  separator: {
-    height: spacing.sm,
-  },
-  centerState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  loadingWrap: {
+    marginTop: spacing.md,
     gap: spacing.sm,
   },
-  stateText: {
-    color: colors.text.secondary,
+  drugHeader: {
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  drugName: {
+    flex: 1,
+    color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 14,
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  mapWrap: {
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  listContent: {
+    paddingBottom: spacing.lg,
+  },
+  centerCard: {
+    marginTop: spacing.md,
+    minHeight: 120,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.surface.border,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    padding: spacing.md,
   },
   errorTitle: {
     color: colors.status.danger,
@@ -235,29 +256,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
-  retryButton: {
-    minHeight: 44,
-    minWidth: 96,
-    borderRadius: radius.md,
-    backgroundColor: colors.brand.darkBlue,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  retryText: {
-    color: '#fff',
+  errorBody: {
+    color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  emptyWrap: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.surface.card,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.surface.border,
-    padding: spacing.lg,
-    gap: 4,
+    fontSize: 13,
+    textAlign: 'center',
   },
   emptyTitle: {
     color: colors.text.primary,
@@ -265,9 +268,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
-  emptyText: {
+  emptyBody: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
     fontSize: 13,
+    textAlign: 'center',
   },
 });

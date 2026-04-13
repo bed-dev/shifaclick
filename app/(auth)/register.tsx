@@ -46,7 +46,7 @@ export default function RegisterScreen() {
         password,
         role,
       });
-      router.replace('/(tabs)/feed');
+      router.replace('/');
     } catch (registerError) {
       const message = registerError instanceof Error ? registerError.message : 'Unable to create account.';
       setError(message);

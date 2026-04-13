@@ -17,7 +17,20 @@ export default function RootLayout() {
             name="item/[id]"
             options={{
               headerShown: true,
-              title: 'Medicine Details',
+              title: 'Drug Details',
+              headerStyle: { backgroundColor: colors.surface.card },
+              headerTintColor: colors.text.primary,
+              headerTitleStyle: {
+                fontFamily: typography.fontFamily,
+                fontWeight: '800',
+              },
+            }}
+          />
+          <Stack.Screen
+            name="request/new"
+            options={{
+              headerShown: true,
+              title: 'New Request',
               headerStyle: { backgroundColor: colors.surface.card },
               headerTintColor: colors.text.primary,
               headerTitleStyle: {

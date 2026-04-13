@@ -5,7 +5,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { colors } from '@/src/theme/tokens';
 
 export default function IndexScreen() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -16,7 +16,7 @@ export default function IndexScreen() {
   }
 
   if (isAuthenticated) {
-    return <Redirect href="/(tabs)/feed" />;
+    return <Redirect href={(user?.role === 'pharmacist' ? '/(tabs)/pharmacist' : '/(tabs)/feed') as any} />;
   }
 
   return <Redirect href="/(auth)/login" />;

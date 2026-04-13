@@ -52,7 +52,7 @@ export default function ProfileScreen() {
             <Text style={styles.nameText}>{profile?.firstName} {profile?.lastName}</Text>
             <Text style={styles.emailText}>{profile?.email}</Text>
             <Text style={styles.roleText}>
-              {profile?.role?.toUpperCase()} · {profile?.verified ? 'Verified' : 'Pending'}
+              {profile?.role === 'pharmacist' ? 'PHARMACIST MODE' : 'PATIENT MODE'} · {profile?.verified ? 'Verified' : 'Pending'}
             </Text>
           </View>
         </View>

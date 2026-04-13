@@ -1,26 +1,24 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { usePatientRequests } from '@/src/hooks/usePharmacy';
+import { useHighDemandRequests } from '@/src/hooks/usePharmacy';
 import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { PatientRequest } from '@/src/types/pharmacy';
+import type { HighDemandRequest } from '@/src/types/pharmacy';
 
-const statusStyle: Record<PatientRequest['status'], { bg: string; text: string; label: string }> = {
-  pending: { bg: '#FEF3C7', text: '#92400E', label: 'Pending' },
-  approved: { bg: '#DBEAFE', text: '#1D4ED8', label: 'Approved' },
-  ready: { bg: '#DCFCE7', text: '#166534', label: 'Ready' },
-  rejected: { bg: '#FEE2E2', text: '#991B1B', label: 'Rejected' },
+const urgencyStyle: Record<HighDemandRequest['urgency'], { bg: string; text: string; label: string }> = {
+  high: { bg: '#FEE2E2', text: '#991B1B', label: 'High urgency' },
+  medium: { bg: '#FEF3C7', text: '#92400E', label: 'Medium urgency' },
 };
 
-export default function RequestsScreen() {
-  const { data, isLoading, error } = usePatientRequests();
+export default function PharmacistDashboardScreen() {
+  const { data, isLoading, error } = useHighDemandRequests();
 
   return (
     <ScreenWrapper>
-      <Text style={styles.title}>My Requests</Text>
-      <Text style={styles.subtitle}>Track approvals, ready-for-pickup status, and request history.</Text>
+      <Text style={styles.title}>Local Demand Radar</Text>
+      <Text style={styles.subtitle}>Prioritized local requests to help restock high-need medicines.</Text>
 
-      {isLoading ? <Text style={styles.stateText}>Loading requests...</Text> : null}
+      {isLoading ? <Text style={styles.stateText}>Loading demand list...</Text> : null}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <FlatList
@@ -28,29 +26,36 @@ export default function RequestsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
-          const status = statusStyle[item.status];
+          const urgency = urgencyStyle[item.urgency];
 
           return (
             <View style={styles.card}>
               <View style={styles.rowBetween}>
                 <Text style={styles.drugName}>{item.drugName}</Text>
-                <View style={[styles.statusPill, { backgroundColor: status.bg }]}>
-                  <Text style={[styles.statusText, { color: status.text }]}>{status.label}</Text>
+                <View style={[styles.urgencyBadge, { backgroundColor: urgency.bg }]}>
+                  <Text style={[styles.urgencyText, { color: urgency.text }]}>{urgency.label}</Text>
                 </View>
               </View>
 
-              <Text style={styles.meta}>{item.pharmacyName}</Text>
-              <View style={styles.rowBetween}>
-                <Text style={styles.meta}>Qty {item.quantity}</Text>
-                <Text style={styles.meta}>{item.createdAt}</Text>
+              <View style={styles.metricsRow}>
+                <Metric label="Requests" value={item.requestedCount.toString()} />
+                <Metric label="Patients Nearby" value={item.nearbyPatients.toString()} />
               </View>
             </View>
           );
         }}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-        ListEmptyComponent={!isLoading ? <Text style={styles.stateText}>No requests yet.</Text> : null}
       />
     </ScreenWrapper>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.metricBox}>
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -73,7 +78,6 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
     fontSize: 14,
-    marginTop: spacing.md,
   },
   errorText: {
     color: colors.status.danger,
@@ -89,36 +93,57 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.surface.border,
-    backgroundColor: colors.surface.card,
+    backgroundColor: '#FFFFFF',
     padding: spacing.md,
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   drugName: {
     flex: 1,
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
   },
-  statusPill: {
+  urgencyBadge: {
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
   },
-  statusText: {
+  urgencyText: {
     fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: '800',
   },
-  meta: {
+  metricsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  metricBox: {
+    flex: 1,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#D4E2EE',
+    backgroundColor: '#F8FCFF',
+    minHeight: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  metricValue: {
+    color: colors.brand.darkBlue,
+    fontFamily: typography.fontFamily,
+    fontSize: 19,
+    fontWeight: '800',
+  },
+  metricLabel: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
