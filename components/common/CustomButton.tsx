@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme/tokens';
+import { colors, elevation, radius, spacing, typography } from '@/theme/tokens';
 
 interface CustomButtonProps {
   label: string;
   onPress: () => void;
   icon?: ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
   disabled?: boolean;
   loading?: boolean;
 }
@@ -21,6 +21,7 @@ export function CustomButton({
   loading = false,
 }: CustomButtonProps) {
   const isBlocked = disabled || loading;
+  const isOutline = variant === 'outline';
 
   return (
     <Pressable
@@ -34,49 +35,60 @@ export function CustomButton({
         isBlocked && styles.disabled,
       ]}
     >
-      {loading ? <ActivityIndicator size="small" color={variant === 'outline' ? colors.brand.aqua : '#fff'} /> : icon}
-      <Text style={[styles.label, variant === 'outline' && styles.outlineLabel]}>{label}</Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={isOutline ? colors.brand.primary : '#fff'} />
+      ) : (
+        icon
+      )}
+      <Text style={[styles.label, isOutline && styles.outlineLabel]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 48,
+    minHeight: 44,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
+    ...elevation.sm,
   },
   pressed: {
+    opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
   disabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   label: {
     color: colors.text.inverted,
     fontFamily: typography.fontFamily,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
   },
   outlineLabel: {
-    color: colors.brand.aqua,
+    color: colors.brand.primary,
   },
 });
 
 const variantStyles = StyleSheet.create({
   primary: {
-    backgroundColor: colors.brand.darkBlue,
+    backgroundColor: colors.brand.dark,
   },
   secondary: {
-    backgroundColor: colors.brand.aqua,
+    backgroundColor: colors.brand.primary,
   },
   outline: {
     backgroundColor: colors.surface.card,
-    borderWidth: 1.5,
-    borderColor: colors.brand.aqua,
+    borderWidth: 1,
+    borderColor: colors.border.brand,
+    ...elevation.none,
+  },
+  danger: {
+    backgroundColor: colors.status.danger,
   },
 });

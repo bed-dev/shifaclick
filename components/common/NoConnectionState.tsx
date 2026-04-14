@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/theme/tokens';
+import { colors, elevation, radius, spacing, typography } from '@/theme/tokens';
 
 interface NoConnectionStateProps {
   title?: string;
@@ -17,7 +17,7 @@ export function NoConnectionState({
     <View style={styles.wrap}>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
-      <Pressable style={styles.button} onPress={onRetry}>
+      <Pressable style={styles.button} onPress={onRetry} accessibilityRole="button">
         <Text style={styles.buttonText}>Try Again</Text>
       </Pressable>
     </View>
@@ -28,38 +28,39 @@ const styles = StyleSheet.create({
   wrap: {
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#D9E6EF',
-    backgroundColor: '#FFFFFF',
-    padding: spacing.md,
+    borderColor: colors.border.default,
+    backgroundColor: colors.surface.card,
+    padding: spacing.lg,
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
+    ...elevation.sm,
   },
   title: {
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.section,
+    fontSize: 15,
   },
   message: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
+    fontSize: typography.caption.fontSize,
     textAlign: 'center',
     lineHeight: 18,
   },
   button: {
-    minHeight: 40,
+    minHeight: 44,
     borderRadius: radius.md,
-    backgroundColor: colors.brand.darkBlue,
+    backgroundColor: colors.brand.dark,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    marginTop: 6,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xs,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.text.inverted,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
+    fontSize: typography.caption.fontSize,
     fontWeight: '700',
   },
 });

@@ -4,6 +4,7 @@ import type { Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { NoConnectionState } from '@/components/common/NoConnectionState';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { useOrderStatus } from '@/hooks/useClientFlow';
 import { isNetworkError } from '@/services/http';
 
@@ -22,21 +23,21 @@ export default function PharmacyListScreen() {
 
   return (
     <View className="flex-1 bg-page p-4">
-      <Text className="text-[22px] font-extrabold text-dark">Searching pharmacies...</Text>
-      <Text className="mt-1 text-[13px] text-slate-500">
-        {params.medicine || 'Prescription'}{data ? ` • ${data.accepted_count} responses` : ''}
+      <Text className="text-[22px] font-extrabold leading-7 text-dark">Searching pharmacies...</Text>
+      <Text className="mt-1 text-[12px] font-medium text-text-secondary">
+        {params.medicine || 'Prescription'}{data ? ` \u2022 ${data.accepted_count} responses` : ''}
       </Text>
 
       {isLoading ? (
-        <View className="mt-4 rounded-2xl border border-[#D6E6EF] bg-white p-4">
-          <Text className="text-[13px] text-slate-500">Contacting nearby pharmacists...</Text>
+        <View className="mt-4 rounded-2xl border border-border-default bg-card p-4">
+          <Text className="text-[12px] font-medium text-text-secondary">Contacting nearby pharmacists...</Text>
         </View>
       ) : null}
 
       {!isLoading && !data?.accepted_count ? (
-        <View className="mt-4 rounded-2xl border border-[#D6E6EF] bg-white p-4">
-          <Text className="text-[14px] font-bold text-dark">No response yet</Text>
-          <Text className="mt-1 text-[12px] text-slate-500">We keep polling every 3 seconds.</Text>
+        <View className="mt-4 rounded-2xl border border-border-default bg-card p-4">
+          <Text className="text-[13px] font-bold text-dark">No response yet</Text>
+          <Text className="mt-1 text-[11px] font-medium text-text-secondary">We keep polling every 3 seconds.</Text>
         </View>
       ) : null}
 
@@ -51,7 +52,7 @@ export default function PharmacyListScreen() {
         ItemSeparatorComponent={() => <View className="h-2" />}
         renderItem={({ item }) => (
           <Pressable
-            className="rounded-2xl border border-[#D6E6EF] bg-white p-4"
+            className="rounded-2xl border border-border-default bg-card p-3"
             onPress={() =>
               router.push({
                 pathname: '/search/confirm/[orderId]',
@@ -66,23 +67,22 @@ export default function PharmacyListScreen() {
                 },
               } as Href)
             }
+            style={{ minHeight: 44 }}
           >
-            <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center justify-between gap-2">
               <View className="flex-1">
-                <Text className="text-[15px] font-extrabold text-dark">{item.pharmacy}</Text>
-                <Text className="mt-0.5 text-[12px] text-slate-500">{item.name}</Text>
+                <Text className="text-[14px] font-bold text-dark">{item.pharmacy}</Text>
+                <Text className="mt-0.5 text-[11px] font-medium text-text-secondary">{item.name}</Text>
               </View>
-              <View className="rounded-full bg-[#DCFCE7] px-2 py-1">
-                <Text className="text-[10px] font-bold text-green-700">Has stock</Text>
-              </View>
+              <StatusBadge label="Has stock" status="success" size="sm" />
             </View>
             <View className="mt-2 flex-row items-center">
               <Ionicons name="call-outline" size={13} color="#64748B" />
-              <Text className="ml-1 text-[12px] text-slate-500">{item.phone || 'No phone provided'}</Text>
+              <Text className="ml-1 text-[11px] font-medium text-text-secondary">{item.phone || 'No phone provided'}</Text>
             </View>
             <View className="mt-1 flex-row items-center">
               <Ionicons name="location-outline" size={13} color="#64748B" />
-              <Text className="ml-1 text-[12px] text-slate-500">{item.address || 'Address unavailable'}</Text>
+              <Text className="ml-1 text-[11px] font-medium text-text-secondary">{item.address || 'Address unavailable'}</Text>
             </View>
           </Pressable>
         )}

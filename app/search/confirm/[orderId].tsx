@@ -63,19 +63,21 @@ export default function ConfirmPharmacyScreen() {
 
   return (
     <View className="flex-1 bg-page p-4">
-      <Text className="text-[22px] font-extrabold text-dark">Confirm your pharmacy</Text>
-      <Text className="mt-1 text-[13px] text-slate-500">One final step before pickup.</Text>
+      <Text className="text-[22px] font-extrabold leading-7 text-dark">Confirm your pharmacy</Text>
+      <Text className="mt-1 text-[12px] font-medium text-text-secondary">One final step before pickup.</Text>
 
-      <View className="mt-4 rounded-2xl border border-[#D6E6EF] bg-white p-4">
-        <Text className="text-[16px] font-extrabold text-dark">{params.pharmacy}</Text>
-        <Text className="mt-1 text-[12px] text-slate-500">{params.name}</Text>
-        <Text className="mt-1 text-[12px] text-slate-500">{params.address || 'Address unavailable'}</Text>
-        <Text className="mt-1 text-[12px] text-slate-500">{params.phone || 'Phone unavailable'}</Text>
+      {/* Pharmacy details */}
+      <View className="mt-4 rounded-2xl border border-border-default bg-card p-3">
+        <Text className="text-[15px] font-bold text-dark">{params.pharmacy}</Text>
+        <Text className="mt-1 text-[11px] font-medium text-text-secondary">{params.name}</Text>
+        <Text className="mt-1 text-[11px] font-medium text-text-muted">{params.address || 'Address unavailable'}</Text>
+        <Text className="mt-1 text-[11px] font-medium text-text-muted">{params.phone || 'Phone unavailable'}</Text>
       </View>
 
-      <View className="mt-4 rounded-2xl border border-[#D6E6EF] bg-white p-4">
-        <Text className="text-[13px] font-bold text-dark">Order</Text>
-        <Text className="mt-1 text-[12px] text-slate-500">{params.medicine}</Text>
+      {/* Order summary */}
+      <View className="mt-3 rounded-2xl border border-border-default bg-card p-3">
+        <Text className="text-[12px] font-bold text-dark">Order</Text>
+        <Text className="mt-1 text-[11px] font-medium text-text-secondary">{params.medicine}</Text>
       </View>
 
       {confirmMutation.isError && isNetworkError(confirmMutation.error) ? (
@@ -84,13 +86,15 @@ export default function ConfirmPharmacyScreen() {
         </View>
       ) : null}
 
+      {/* CTA */}
       <Pressable
-        className={`mt-4 h-12 items-center justify-center rounded-xl ${confirmMutation.isPending ? 'bg-slate-400' : 'bg-aqua'}`}
+        className={`mt-4 items-center justify-center rounded-xl ${confirmMutation.isPending ? 'bg-text-muted' : 'bg-brand'}`}
         onPress={() => void handleConfirm()}
         disabled={confirmMutation.isPending}
+        style={{ minHeight: 44 }}
       >
-        <Text className="text-sm font-extrabold text-white">
-          {confirmMutation.isPending ? 'Confirming...' : "Confirm — I'm heading there"}
+        <Text className="text-[13px] font-bold text-white">
+          {confirmMutation.isPending ? 'Confirming...' : "Confirm \u2014 I'm heading there"}
         </Text>
       </Pressable>
     </View>

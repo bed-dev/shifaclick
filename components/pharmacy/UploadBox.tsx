@@ -23,12 +23,12 @@ export function UploadBox({ uri, onCameraPress, onGalleryPress }: UploadBoxProps
       )}
 
       <View style={styles.actionsRow}>
-        <Pressable style={styles.action} onPress={onCameraPress}>
-          <Ionicons name="camera-outline" size={16} color={colors.brand.aqua} />
+        <Pressable style={styles.action} onPress={onCameraPress} accessibilityLabel="Take photo with camera">
+          <Ionicons name="camera-outline" size={16} color={colors.brand.primary} />
           <Text style={styles.actionLabel}>Camera</Text>
         </Pressable>
-        <Pressable style={styles.action} onPress={onGalleryPress}>
-          <Ionicons name="images-outline" size={16} color={colors.brand.aqua} />
+        <Pressable style={styles.action} onPress={onGalleryPress} accessibilityLabel="Pick from gallery">
+          <Ionicons name="images-outline" size={16} color={colors.brand.primary} />
           <Text style={styles.actionLabel}>Gallery</Text>
         </Pressable>
       </View>
@@ -40,40 +40,40 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.surface.border,
+    borderColor: colors.border.default,
     backgroundColor: colors.surface.card,
-    padding: spacing.sm,
-    gap: spacing.sm,
+    padding: spacing.md,
+    gap: spacing.md,
   },
   preview: {
     width: '100%',
-    height: 172,
+    height: 160,
     borderRadius: radius.md,
     resizeMode: 'cover',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.surface.subtle,
   },
   placeholder: {
-    minHeight: 172,
+    minHeight: 160,
     borderRadius: radius.md,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#BCD2E0',
+    borderColor: colors.border.brand,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8FCFF',
-    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface.inputBg,
+    paddingHorizontal: spacing.lg,
     gap: spacing.xs,
   },
   placeholderTitle: {
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 16,
-    fontWeight: '800',
+    ...typography.section,
+    fontSize: 15,
   },
   placeholderBody: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 12,
+    fontSize: typography.caption.fontSize,
     textAlign: 'center',
   },
   actionsRow: {
@@ -85,17 +85,17 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#CBE0EE',
+    borderColor: colors.border.default,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: spacing.xs,
-    backgroundColor: '#F6FBFF',
+    backgroundColor: colors.surface.inputBg,
   },
   actionLabel: {
-    color: colors.brand.aqua,
+    color: colors.brand.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
+    fontSize: typography.caption.fontSize,
     fontWeight: '700',
   },
 });

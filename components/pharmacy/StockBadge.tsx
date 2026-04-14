@@ -1,20 +1,25 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { radius, spacing, typography } from '@/theme/tokens';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
 import type { DrugStockStatus } from '@/types/pharmacy';
 
-const stockConfig: Record<DrugStockStatus, { label: string; bg: string; text: string }> = {
-  in: { label: 'In Stock', bg: '#DCFCE7', text: '#166534' },
-  low: { label: 'Low Stock', bg: '#FEF3C7', text: '#9A6700' },
-  out: { label: 'Out of Stock', bg: '#FEE2E2', text: '#B91C1C' },
+const stockConfig: Record<DrugStockStatus, { label: string; bg: string; text: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  in: { label: 'In Stock', bg: colors.status.successBg, text: colors.status.successText, icon: 'checkmark-circle' },
+  low: { label: 'Low Stock', bg: colors.status.warningBg, text: colors.status.warningText, icon: 'alert-circle' },
+  out: { label: 'Out of Stock', bg: colors.status.dangerBg, text: colors.status.dangerText, icon: 'close-circle' },
 };
 
 export function StockBadge({ status }: { status: DrugStockStatus }) {
   const config = stockConfig[status];
 
   return (
-    <View style={[styles.badge, { backgroundColor: config.bg }]}>
-      <View style={[styles.dot, { backgroundColor: config.text }]} />
+    <View
+      style={[styles.badge, { backgroundColor: config.bg }]}
+      accessibilityRole="text"
+      accessibilityLabel={config.label}
+    >
+      <Ionicons name={config.icon} size={12} color={config.text} />
       <Text style={[styles.text, { color: config.text }]}>{config.label}</Text>
     </View>
   );
@@ -22,22 +27,18 @@ export function StockBadge({ status }: { status: DrugStockStatus }) {
 
 const styles = StyleSheet.create({
   badge: {
-    minHeight: 28,
+    minHeight: 24,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     alignSelf: 'flex-start',
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
   },
   text: {
     fontFamily: typography.fontFamily,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: typography.badge.fontSize,
+    fontWeight: typography.badge.fontWeight,
   },
 });

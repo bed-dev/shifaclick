@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { CustomButton } from '@/components/common/CustomButton';
 import { UploadBox } from '@/components/pharmacy/UploadBox';
 import { pharmacyService } from '@/services/pharmacyService';
-import { colors, radius, spacing, typography } from '@/theme/tokens';
+import { colors, elevation, radius, spacing, typography } from '@/theme/tokens';
 import type { DrugForm } from '@/types/pharmacy';
 
 const forms: DrugForm[] = ['pill', 'gel', 'syrup', 'injection'];
@@ -139,11 +139,19 @@ export default function DrugRequestWizardScreen() {
           <View style={styles.counterCard}>
             <Text style={styles.counterLabel}>Requested quantity</Text>
             <View style={styles.counterRow}>
-              <Pressable style={styles.counterBtn} onPress={() => setQuantity((prev) => Math.max(1, prev - 1))}>
+              <Pressable
+                style={styles.counterBtn}
+                onPress={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                accessibilityLabel="Decrease quantity"
+              >
                 <Text style={styles.counterBtnText}>-</Text>
               </Pressable>
               <Text style={styles.counterValue}>{quantity}</Text>
-              <Pressable style={styles.counterBtn} onPress={() => setQuantity((prev) => prev + 1)}>
+              <Pressable
+                style={styles.counterBtn}
+                onPress={() => setQuantity((prev) => prev + 1)}
+                accessibilityLabel="Increase quantity"
+              >
                 <Text style={styles.counterBtnText}>+</Text>
               </Pressable>
             </View>
@@ -197,14 +205,30 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
     <View style={styles.stepRow}>
       {[1, 2, 3].map((step) => {
-        const active = step <= currentStep;
+        const done = step < currentStep;
+        const active = step === currentStep;
+        const reached = step <= currentStep;
 
         return (
           <View key={step} style={styles.stepNodeWrap}>
-            <View style={[styles.stepNode, active && styles.stepNodeActive]}>
-              <Text style={[styles.stepNodeText, active && styles.stepNodeTextActive]}>{step}</Text>
+            <View
+              style={[
+                styles.stepNode,
+                reached && styles.stepNodeActive,
+                done && styles.stepNodeDone,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.stepNodeText,
+                  reached && styles.stepNodeTextActive,
+                  done && styles.stepNodeTextDone,
+                ]}
+              >
+                {step}
+              </Text>
             </View>
-            {step < 3 ? <View style={[styles.stepLine, active && styles.stepLineActive]} /> : null}
+            {step < 3 ? <View style={[styles.stepLine, reached && styles.stepLineActive]} /> : null}
           </View>
         );
       })}
@@ -215,21 +239,23 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 const styles = StyleSheet.create({
   content: {
     backgroundColor: colors.surface.page,
-    padding: spacing.md,
-    gap: spacing.md,
+    padding: spacing.lg,
+    gap: spacing.lg,
   },
   title: {
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 28,
-    fontWeight: '800',
+    ...typography.title,
     marginTop: spacing.xs,
   },
   subtitle: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 14,
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
   },
+
+  /* --- Step indicator --- */
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -241,172 +267,193 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepNode: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#C9DCE9',
-    backgroundColor: '#fff',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: colors.border.default,
+    backgroundColor: colors.surface.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepNodeActive: {
-    borderColor: colors.brand.aqua,
-    backgroundColor: '#DBF2F5',
+    borderColor: colors.brand.primary,
+    backgroundColor: colors.status.infoBg,
+  },
+  stepNodeDone: {
+    borderColor: colors.status.success,
+    backgroundColor: colors.status.successBg,
   },
   stepNodeText: {
-    color: colors.text.secondary,
+    color: colors.text.muted,
     fontFamily: typography.fontFamily,
-    fontSize: 12,
+    fontSize: typography.caption.fontSize,
     fontWeight: '800',
   },
   stepNodeTextActive: {
-    color: colors.brand.aqua,
+    color: colors.brand.primary,
+  },
+  stepNodeTextDone: {
+    color: colors.status.success,
   },
   stepLine: {
-    width: 74,
+    width: 64,
     height: 2,
-    backgroundColor: '#D7E6EF',
+    backgroundColor: colors.border.default,
+    borderRadius: 1,
   },
   stepLineActive: {
-    backgroundColor: '#A9DADF',
+    backgroundColor: colors.border.brand,
   },
+
+  /* --- Card wrapper --- */
   card: {
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.surface.border,
-    backgroundColor: '#fff',
-    padding: spacing.md,
-    gap: spacing.sm,
+    borderColor: colors.border.default,
+    backgroundColor: colors.surface.card,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...elevation.sm,
   },
   sectionTitle: {
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 18,
-    fontWeight: '800',
+    ...typography.section,
     marginBottom: spacing.xs,
   },
+
+  /* --- Form fields --- */
   fieldWrap: {
-    gap: 6,
+    gap: spacing.xs,
   },
   label: {
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
+    fontSize: typography.caption.fontSize,
     fontWeight: '700',
   },
   field: {
-    minHeight: 48,
+    minHeight: 44,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#C8DCE9',
+    borderColor: colors.border.default,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: '#F9FDFF',
+    backgroundColor: colors.surface.inputBg,
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: typography.body.fontSize,
+    fontWeight: '500',
   },
+
+  /* --- Type pills --- */
   typeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   typePill: {
     minHeight: 36,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: '#C8DCE9',
-    paddingHorizontal: spacing.md,
+    borderColor: colors.border.default,
+    paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F6FBFF',
+    backgroundColor: colors.surface.inputBg,
   },
   typePillActive: {
-    borderColor: colors.brand.aqua,
-    backgroundColor: '#DCF3F6',
+    borderColor: colors.brand.primary,
+    backgroundColor: colors.status.infoBg,
   },
   typeText: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: typography.caption.fontSize,
+    fontWeight: '700',
     textTransform: 'capitalize',
   },
   typeTextActive: {
-    color: colors.brand.aqua,
+    color: colors.brand.primary,
   },
+
+  /* --- Quantity counter --- */
   counterCard: {
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#D4E3EE',
-    backgroundColor: '#F9FDFF',
-    padding: spacing.sm,
+    borderColor: colors.border.default,
+    backgroundColor: colors.surface.inputBg,
+    padding: spacing.md,
     gap: spacing.sm,
   },
   counterLabel: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: typography.caption.fontSize,
+    fontWeight: '600',
   },
   counterRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   counterBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#BED6E6',
+    borderColor: colors.border.default,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface.card,
   },
   counterBtnText: {
-    color: colors.brand.darkBlue,
+    color: colors.brand.dark,
     fontFamily: typography.fontFamily,
     fontSize: 20,
     fontWeight: '700',
   },
   counterValue: {
-    minWidth: 36,
+    minWidth: 40,
     textAlign: 'center',
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
     fontSize: 22,
     fontWeight: '800',
   },
+
+  /* --- Partial toggle --- */
   toggleRow: {
-    minHeight: 62,
+    minHeight: 56,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#D4E3EE',
-    backgroundColor: '#F9FDFF',
+    borderColor: colors.border.default,
+    backgroundColor: colors.surface.inputBg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   toggleTitle: {
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 14,
+    fontSize: typography.body.fontSize,
     fontWeight: '700',
   },
   toggleBody: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 12,
+    fontSize: typography.meta.fontSize,
     marginTop: 2,
   },
+
+  /* --- Actions --- */
   actionsRow: {
     gap: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
 });

@@ -1,7 +1,9 @@
 import { FlatList, Pressable, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 
 import { NoConnectionState } from '@/components/common/NoConnectionState';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import {
   useAcceptOrderMutation,
   usePharmacistAcceptedOrders,
@@ -44,20 +46,25 @@ export default function PharmacistDashboardScreen() {
 
   return (
     <View className="flex-1 bg-page p-4">
-      <Text className="text-[24px] font-extrabold text-dark">Pharmacist Dashboard</Text>
-      <Text className="mt-1 text-[13px] text-slate-500">Live client requests and accepted queue.</Text>
+      {/* Header */}
+      <Text className="text-[22px] font-extrabold leading-7 text-dark">Pharmacist Dashboard</Text>
+      <Text className="mt-1 text-[12px] font-medium text-text-secondary">
+        Live client requests and accepted queue.
+      </Text>
 
+      {/* KPI cards */}
       <View className="mt-3 flex-row gap-2">
-        <View className="flex-1 rounded-2xl border border-[#D6E6EF] bg-white p-3">
+        <View className="flex-1 rounded-2xl border border-border-default bg-card p-3">
           <Text className="text-[20px] font-extrabold text-dark">{pendingQuery.data?.length ?? 0}</Text>
-          <Text className="text-[11px] font-semibold text-slate-500">Pending requests</Text>
+          <Text className="text-[11px] font-semibold text-text-secondary">Pending requests</Text>
         </View>
-        <View className="flex-1 rounded-2xl border border-[#D6E6EF] bg-white p-3">
-          <Text className="text-[20px] font-extrabold text-aqua">{acceptedQuery.data?.length ?? 0}</Text>
-          <Text className="text-[11px] font-semibold text-slate-500">Accepted orders</Text>
+        <View className="flex-1 rounded-2xl border border-border-brand bg-card p-3">
+          <Text className="text-[20px] font-extrabold text-brand">{acceptedQuery.data?.length ?? 0}</Text>
+          <Text className="text-[11px] font-semibold text-text-secondary">Accepted orders</Text>
         </View>
       </View>
 
+      {/* Pending order list */}
       <FlatList
         className="mt-4"
         data={pendingQuery.data ?? []}
@@ -77,9 +84,11 @@ export default function PharmacistDashboardScreen() {
         )}
         ListEmptyComponent={
           !pendingQuery.isLoading ? (
-            <View className="rounded-2xl border border-[#D6E6EF] bg-white p-4">
-              <Text className="text-[14px] font-bold text-dark">No pending client orders</Text>
-              <Text className="mt-1 text-[12px] text-slate-500">New requests will appear automatically.</Text>
+            <View className="rounded-2xl border border-border-default bg-card p-4">
+              <Text className="text-[13px] font-bold text-dark">No pending client orders</Text>
+              <Text className="mt-1 text-[11px] font-medium text-text-secondary">
+                New requests will appear automatically.
+              </Text>
             </View>
           ) : null
         }
@@ -100,30 +109,49 @@ function PendingOrderCard({
   disabled: boolean;
 }) {
   return (
-    <View className="rounded-2xl border border-[#D6E6EF] bg-white p-4">
-      <View className="flex-row items-center justify-between">
-        <Text className="flex-1 text-[15px] font-extrabold text-dark">{item.medicine_name || 'Prescription request'}</Text>
-        <View className="rounded-full bg-amber-100 px-2 py-1">
-          <Text className="text-[10px] font-bold text-amber-700">{item.status}</Text>
-        </View>
+    <View className="rounded-2xl border border-border-default bg-card p-3">
+      {/* Title + status badge */}
+      <View className="flex-row items-center justify-between gap-2">
+        <Text className="flex-1 text-[14px] font-bold text-dark" numberOfLines={1}>
+          {item.medicine_name || 'Prescription request'}
+        </Text>
+        <StatusBadge label={item.status} status="warning" size="sm" />
       </View>
-      <Text className="mt-1 text-[12px] text-slate-500">{item.client_name} • {item.client_phone || 'No phone'}</Text>
-      <Text className="mt-1 text-[12px] text-slate-500">Qty: {item.quantity || '—'} • {item.created_at}</Text>
-      {item.notes ? <Text className="mt-1 text-[12px] text-slate-500">Note: {item.notes}</Text> : null}
+
+      {/* Meta */}
+      <Text className="mt-1 text-[11px] font-medium text-text-secondary">
+        {item.client_name}  {item.client_phone || 'No phone'}
+      </Text>
+      <Text className="mt-0.5 text-[11px] font-medium text-text-muted">
+        Qty: {item.quantity || '\u2014'}  {item.created_at}
+      </Text>
+      {item.notes ? (
+        <Text className="mt-0.5 text-[11px] font-medium text-text-muted" numberOfLines={2}>
+          Note: {item.notes}
+        </Text>
+      ) : null}
+
+      {/* Action buttons */}
       <View className="mt-3 flex-row gap-2">
         <Pressable
-          className={`h-10 flex-1 items-center justify-center rounded-xl ${disabled ? 'bg-slate-300' : 'bg-green-600'}`}
+          className={`flex-1 flex-row items-center justify-center rounded-xl ${disabled ? 'bg-subtle' : 'bg-status-success'}`}
           onPress={() => onAccept(item.id)}
           disabled={disabled}
+          style={{ minHeight: 44 }}
+          accessibilityLabel={`Accept order for ${item.medicine_name}`}
         >
-          <Text className="text-[12px] font-extrabold text-white">Accept</Text>
+          <Ionicons name="checkmark-circle" size={15} color="#fff" style={{ marginRight: 4 }} />
+          <Text className="text-[12px] font-bold text-white">Accept</Text>
         </Pressable>
         <Pressable
-          className={`h-10 flex-1 items-center justify-center rounded-xl ${disabled ? 'bg-slate-300' : 'bg-red-600'}`}
+          className={`flex-1 flex-row items-center justify-center rounded-xl ${disabled ? 'bg-subtle' : 'bg-status-danger'}`}
           onPress={() => onRefuse(item.id)}
           disabled={disabled}
+          style={{ minHeight: 44 }}
+          accessibilityLabel={`Refuse order for ${item.medicine_name}`}
         >
-          <Text className="text-[12px] font-extrabold text-white">Refuse</Text>
+          <Ionicons name="close-circle" size={15} color="#fff" style={{ marginRight: 4 }} />
+          <Text className="text-[12px] font-bold text-white">Refuse</Text>
         </Pressable>
       </View>
     </View>

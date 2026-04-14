@@ -11,27 +11,41 @@ export default function OrderSuccessScreen() {
 
   return (
     <View className="flex-1 bg-page p-4">
-      <View className="mt-2 rounded-2xl border border-[#CFEAD6] bg-[#ECFDF3] p-4">
-        <Text className="text-[18px] font-extrabold text-green-700">You&apos;re all set</Text>
-        <Text className="mt-1 text-[13px] text-green-700">The pharmacy is preparing your order now.</Text>
+      {/* Success banner */}
+      <View className="mt-2 rounded-2xl border border-status-success-bg bg-status-success-bg p-4">
+        <Text className="text-[17px] font-extrabold text-status-success-text">You're all set</Text>
+        <Text className="mt-1 text-[12px] font-medium text-status-success-text">
+          The pharmacy is preparing your order now.
+        </Text>
       </View>
 
-      <View className="mt-4 rounded-2xl border border-[#D6E6EF] bg-white p-4">
-        <Text className="text-[15px] font-extrabold text-dark">{params.pharmacy}</Text>
-        <Text className="mt-1 text-[12px] text-slate-500">{params.address || 'Address unavailable'}</Text>
-        <Text className="mt-1 text-[12px] text-slate-500">{params.phone || 'Phone unavailable'}</Text>
+      {/* Pharmacy details */}
+      <View className="mt-3 rounded-2xl border border-border-default bg-card p-3">
+        <Text className="text-[14px] font-bold text-dark">{params.pharmacy}</Text>
+        <Text className="mt-1 text-[11px] font-medium text-text-secondary">{params.address || 'Address unavailable'}</Text>
+        <Text className="mt-1 text-[11px] font-medium text-text-muted">{params.phone || 'Phone unavailable'}</Text>
       </View>
 
-      <View className="mt-4 rounded-2xl border border-[#D6E6EF] bg-white p-4">
-        <Text className="text-[13px] font-bold text-dark">Requested medicine</Text>
-        <Text className="mt-1 text-[12px] text-slate-500">{params.medicine || 'Prescription upload'}</Text>
+      {/* Medicine */}
+      <View className="mt-3 rounded-2xl border border-border-default bg-card p-3">
+        <Text className="text-[12px] font-bold text-dark">Requested medicine</Text>
+        <Text className="mt-1 text-[11px] font-medium text-text-secondary">{params.medicine || 'Prescription upload'}</Text>
       </View>
 
-      <Pressable className="mt-4 h-12 items-center justify-center rounded-xl bg-dark" onPress={() => router.replace('/(tabs)/feed')}>
-        <Text className="text-sm font-extrabold text-white">New Search</Text>
+      {/* Actions */}
+      <Pressable
+        className="mt-4 items-center justify-center rounded-xl bg-dark"
+        onPress={() => router.replace('/(tabs)/feed')}
+        style={{ minHeight: 44 }}
+      >
+        <Text className="text-[13px] font-bold text-white">New Search</Text>
       </Pressable>
-      <Pressable className="mt-2 h-12 items-center justify-center rounded-xl border border-[#D6E6EF] bg-white" onPress={() => router.replace('/(tabs)/activity')}>
-        <Text className="text-sm font-extrabold text-dark">Go to My Orders</Text>
+      <Pressable
+        className="mt-2 items-center justify-center rounded-xl border border-border-default bg-card"
+        onPress={() => router.replace('/(tabs)/activity')}
+        style={{ minHeight: 44 }}
+      >
+        <Text className="text-[13px] font-bold text-dark">Go to My Orders</Text>
       </Pressable>
     </View>
   );

@@ -24,13 +24,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.page,
   },
   header: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
   },
   content: {
     flex: 1,
   },
   padded: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
 });
