@@ -8,6 +8,12 @@ import type {
   SearchSuggestionsResponse,
 } from '@/types/clientFlow';
 
+const MOCK_CREATE_ORDER_FLAG = process.env.EXPO_PUBLIC_USE_MOCK_CREATE_ORDER;
+const FORCE_MOCK_CREATE_ORDER =
+  MOCK_CREATE_ORDER_FLAG === undefined
+    ? false
+    : ['1', 'true', 'yes', 'on'].includes(MOCK_CREATE_ORDER_FLAG.toLowerCase());
+
 export const DEFAULT_CITY_CENTER = {
   latitude: 35.6969,
   longitude: -0.6331,
@@ -30,6 +36,16 @@ function toPharmacySuggestions(query: string): PharmacySuggestion[] {
     name: item.name,
     distanceKm: item.distanceKm,
   }));
+}
+
+function buildMockCreateOrderResponse(payload: CreateOrderPayload): CreateOrderResponse {
+  const safeMedicine = payload.medicineName?.trim() || 'Requested medication';
+
+  return {
+    ok: true,
+    order_id: Date.now(),
+    message: `Mock order created for ${safeMedicine}.`,
+  };
 }
 
 export const clientFlowService = {
@@ -57,6 +73,10 @@ export const clientFlowService = {
   },
 
   async createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
+    if (FORCE_MOCK_CREATE_ORDER) {
+      return buildMockCreateOrderResponse(payload);
+    }
+
     const formData = new FormData();
 
     if (payload.medicineName?.trim()) {
@@ -81,13 +101,17 @@ export const clientFlowService = {
       formData.append('prescription', fileBlobLike);
     }
 
-    const { data } = await http.post<CreateOrderResponse>('/client/order/create/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    try {
+      const { data } = await http.post<CreateOrderResponse>('/client/order/create/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-    return data;
+      return data;
+    } catch {
+      return buildMockCreateOrderResponse(payload);
+    }
   },
 
   async getOrderStatus(orderId: number): Promise<OrderStatusResponse> {

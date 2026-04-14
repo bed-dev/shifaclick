@@ -157,6 +157,7 @@ export default function LoginScreen() {
 
             <CustomButton
               label="Sign In"
+              variant="primary"
               loading={isSubmitting}
               onPress={handleLogin}
               icon={<Ionicons name="log-in-outline" size={16} color="#fff" />}

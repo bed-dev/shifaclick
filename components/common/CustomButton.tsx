@@ -49,6 +49,9 @@ const styles = StyleSheet.create({
   base: {
     minHeight: 44,
     alignSelf: 'stretch',
+    backgroundColor: colors.brand.dark,
+    borderWidth: 1,
+    borderColor: '#243240',
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
