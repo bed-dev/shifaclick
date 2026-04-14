@@ -40,12 +40,13 @@ function getMockCredentials(role: UserRole | string | undefined | null) {
 }
 
 export default function LoginScreen() {
-  const { login, isLoading } = useAuth();
+  const { login } = useAuth();
   const defaultCredentials = getMockCredentials(defaultRole);
   const [role, setRole] = useState<UserRole>(defaultRole);
   const [email, setEmail] = useState(defaultCredentials.email);
   const [password, setPassword] = useState(defaultCredentials.password);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const safeRole = normalizeRole(role);
   const mockCredentials = getMockCredentials(role);
 
@@ -66,11 +67,14 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       setError(null);
+      setIsSubmitting(true);
       await login(email, password, safeRole);
       router.replace('/');
     } catch (loginError) {
       const message = loginError instanceof Error ? loginError.message : 'Unable to sign in.';
       setError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -153,7 +157,7 @@ export default function LoginScreen() {
 
             <CustomButton
               label="Sign In"
-              loading={isLoading}
+              loading={isSubmitting}
               onPress={handleLogin}
               icon={<Ionicons name="log-in-outline" size={16} color="#fff" />}
             />

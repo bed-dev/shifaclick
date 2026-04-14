@@ -168,7 +168,7 @@ function ClientMapViewBase({
       mapType={Platform.OS === 'android' ? 'none' : 'standard'}
     >
       <UrlTile
-        urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         maximumZ={19}
         flipY={false}
         shouldReplaceMapContent
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   mapArea: {
-    minHeight: 240,
+    height: 240,
     backgroundColor: '#E6EEF5',
   },
   calloutCard: {

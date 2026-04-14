@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  FlatList,
   Keyboard,
   Pressable,
   ScrollView,
@@ -243,25 +242,20 @@ export default function ClientHomeScreen() {
                         />
                       </View>
                     ) : (
-                      <FlatList
-                        data={suggestions}
-                        keyExtractor={(item) => String(item.id)}
+                      <ScrollView
                         keyboardShouldPersistTaps="handled"
-                        initialNumToRender={8}
-                        maxToRenderPerBatch={10}
-                        windowSize={5}
-                        removeClippedSubviews
-                        ListHeaderComponent={
-                          <View className="border-b border-subtle px-3 py-2">
-                            <Text className="text-[11px] font-semibold text-text-muted">
-                              {suggestionsLoading
-                                ? "Searching..."
-                                : "Suggestions"}
-                            </Text>
-                          </View>
-                        }
-                        renderItem={({ item }) => (
+                        nestedScrollEnabled
+                      >
+                        <View className="border-b border-subtle px-3 py-2">
+                          <Text className="text-[11px] font-semibold text-text-muted">
+                            {suggestionsLoading
+                              ? "Searching..."
+                              : "Suggestions"}
+                          </Text>
+                        </View>
+                        {suggestions.map((item) => (
                           <Pressable
+                            key={String(item.id)}
                             className="border-b border-subtle px-3 py-2.5"
                             onPress={() => {
                               setMedicineName(item.text);
@@ -277,17 +271,15 @@ export default function ClientHomeScreen() {
                               {item.subtitle}
                             </Text>
                           </Pressable>
-                        )}
-                        ListEmptyComponent={
-                          !suggestionsLoading ? (
-                            <View className="px-3 py-4">
-                              <Text className="text-xs text-text-muted">
-                                No medicines found.
-                              </Text>
-                            </View>
-                          ) : null
-                        }
-                      />
+                        ))}
+                        {!suggestionsLoading && suggestions.length === 0 ? (
+                          <View className="px-3 py-4">
+                            <Text className="text-xs text-text-muted">
+                              No medicines found.
+                            </Text>
+                          </View>
+                        ) : null}
+                      </ScrollView>
                     )}
                   </View>
                 ) : null}

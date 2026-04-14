@@ -13,10 +13,18 @@ export default function PharmacyListScreen() {
   const orderId = Number(params.orderId);
   const { data, isLoading, error, refetch } = useOrderStatus(orderId, true);
 
-  if (error && isNetworkError(error)) {
+  if (error) {
     return (
       <View className="flex-1 bg-page p-4">
-        <NoConnectionState onRetry={() => void refetch()} />
+        <NoConnectionState
+          title={isNetworkError(error) ? 'No Connection' : 'Something went wrong'}
+          message={
+            isNetworkError(error)
+              ? 'Please check your internet connection and try again.'
+              : 'Could not load pharmacy responses. Please try again.'
+          }
+          onRetry={() => void refetch()}
+        />
       </View>
     );
   }

@@ -47,25 +47,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const login = useCallback(async (email: string, password: string, preferredRole: UserRole = 'client') => {
-    setIsLoading(true);
-
-    try {
-      const session = await authService.login(email, password, preferredRole);
-      setUser(session.user);
-    } finally {
-      setIsLoading(false);
-    }
+    const session = await authService.login(email, password, preferredRole);
+    setUser(session.user);
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
-    setIsLoading(true);
-
-    try {
-      const session = await authService.register(payload);
-      setUser(session.user);
-    } finally {
-      setIsLoading(false);
-    }
+    const session = await authService.register(payload);
+    setUser(session.user);
   }, []);
 
   const refreshProfile = useCallback(async () => {
