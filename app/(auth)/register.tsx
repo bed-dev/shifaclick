@@ -62,7 +62,7 @@ export default function RegisterScreen() {
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
             <Text style={styles.title}>Create your account</Text>
-            <Text style={styles.subtitle}>Choose your role and continue with mocked onboarding.</Text>
+            <Text style={styles.subtitle}>Create an account and continue to your role dashboard.</Text>
 
             <View style={styles.roleRow}>
               {roles.map((option) => {

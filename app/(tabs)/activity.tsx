@@ -1,124 +1,90 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import type { Href } from 'expo-router';
 
-import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { usePatientRequests } from '@/hooks/usePharmacy';
-import { colors, radius, spacing, typography } from '@/theme/tokens';
-import type { PatientRequest } from '@/types/pharmacy';
+import { NoConnectionState } from '@/components/common/NoConnectionState';
+import { useTrackedOrders } from '@/hooks/useClientFlow';
 
-const statusStyle: Record<PatientRequest['status'], { bg: string; text: string; label: string }> = {
-  pending: { bg: '#FEF3C7', text: '#92400E', label: 'Pending' },
-  approved: { bg: '#DBEAFE', text: '#1D4ED8', label: 'Approved' },
-  ready: { bg: '#DCFCE7', text: '#166534', label: 'Ready' },
-  rejected: { bg: '#FEE2E2', text: '#991B1B', label: 'Rejected' },
-};
+export default function OrdersScreen() {
+  const { data, isLoading, error, refetch } = useTrackedOrders();
 
-export default function RequestsScreen() {
-  const { data, isLoading, error } = usePatientRequests();
+  if (error) {
+    return (
+      <View className="flex-1 bg-page p-4">
+        <NoConnectionState title="Could not load orders" onRetry={() => void refetch()} />
+      </View>
+    );
+  }
 
   return (
-    <ScreenWrapper>
-      <Text style={styles.title}>My Requests</Text>
-      <Text style={styles.subtitle}>Track approvals, ready-for-pickup status, and request history.</Text>
+    <View className="flex-1 bg-page p-4">
+      <Text className="text-[24px] font-extrabold text-dark">My Orders</Text>
+      <Text className="mt-1 text-[13px] text-slate-500">Track live responses and final pharmacy confirmations.</Text>
 
-      {isLoading ? <Text style={styles.stateText}>Loading requests...</Text> : null}
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {isLoading ? (
+        <View className="mt-4 rounded-2xl border border-[#D6E6EF] bg-white p-4">
+          <Text className="text-[13px] text-slate-500">Loading orders...</Text>
+        </View>
+      ) : null}
 
       <FlatList
+        className="mt-4"
         data={data ?? []}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const status = statusStyle[item.status];
-
-          return (
-            <View style={styles.card}>
-              <View style={styles.rowBetween}>
-                <Text style={styles.drugName}>{item.drugName}</Text>
-                <View style={[styles.statusPill, { backgroundColor: status.bg }]}>
-                  <Text style={[styles.statusText, { color: status.text }]}>{status.label}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.meta}>{item.pharmacyName}</Text>
-              <View style={styles.rowBetween}>
-                <Text style={styles.meta}>Qty {item.quantity}</Text>
-                <Text style={styles.meta}>{item.createdAt}</Text>
-              </View>
+        keyExtractor={(item) => String(item.orderId)}
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews
+        ItemSeparatorComponent={() => <View className="h-2" />}
+        renderItem={({ item }) => (
+          <Pressable
+            className="rounded-2xl border border-[#D6E6EF] bg-white p-4"
+            onPress={() =>
+              router.push({
+                pathname: '/search/results/[orderId]',
+                params: {
+                  orderId: String(item.orderId),
+                  medicine: item.medicineName,
+                },
+              } as Href)
+            }
+          >
+            <View className="flex-row items-center justify-between">
+              <Text className="flex-1 text-[15px] font-extrabold text-dark">{item.medicineName}</Text>
+              <StatusBadge status={item.status?.status ?? 'pending'} />
             </View>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-        ListEmptyComponent={!isLoading ? <Text style={styles.stateText}>No requests yet.</Text> : null}
+            <Text className="mt-1 text-[12px] text-slate-500">Order #{item.orderId}</Text>
+            <Text className="mt-1 text-[12px] text-slate-500">
+              {item.status ? `${item.status.accepted_count} pharmacies responded` : 'Waiting for sync...'}
+            </Text>
+          </Pressable>
+        )}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View className="rounded-2xl border border-[#D6E6EF] bg-white p-4">
+              <Text className="text-[14px] font-bold text-dark">No orders yet</Text>
+              <Text className="mt-1 text-[12px] text-slate-500">Start a medicine search to create your first order.</Text>
+            </View>
+          ) : null
+        }
       />
-    </ScreenWrapper>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  title: {
-    color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: spacing.xs,
-  },
-  subtitle: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 14,
-    marginTop: 2,
-    marginBottom: spacing.md,
-  },
-  stateText: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 14,
-    marginTop: spacing.md,
-  },
-  errorText: {
-    color: colors.status.danger,
-    fontFamily: typography.fontFamily,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  listContent: {
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
-  },
-  card: {
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.surface.border,
-    backgroundColor: colors.surface.card,
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  drugName: {
-    flex: 1,
-    color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  statusPill: {
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 5,
-  },
-  statusText: {
-    fontFamily: typography.fontFamily,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  meta: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 12,
-  },
-});
+function StatusBadge({ status }: { status: 'pending' | 'responded' | 'confirmed' | 'cancelled' }) {
+  const tone =
+    status === 'confirmed'
+      ? 'bg-green-100 text-green-700'
+      : status === 'responded'
+        ? 'bg-blue-100 text-blue-700'
+        : status === 'cancelled'
+          ? 'bg-red-100 text-red-700'
+          : 'bg-amber-100 text-amber-700';
+
+  return (
+    <View className={`rounded-full px-2 py-1 ${tone}`}>
+      <Text className="text-[10px] font-bold uppercase">{status}</Text>
+    </View>
+  );
+}

@@ -1,5 +1,6 @@
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import type { Href } from 'expo-router';
 
 import { CustomButton } from '@/components/common/CustomButton';
 import { StockBadge } from '@/components/pharmacy/StockBadge';
@@ -70,7 +71,12 @@ export default function DrugDetailsScreen() {
 
       <CustomButton
         label="Start Request"
-        onPress={() => router.push(`/request/new?drugId=${data.id}` as any)}
+        onPress={() =>
+          router.push({
+            pathname: '/request/new',
+            params: { drugId: data.id },
+          } as Href)
+        }
       />
     </ScrollView>
   );

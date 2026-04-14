@@ -1,39 +1,49 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/context/AuthContext';
-import { useMockQuery } from '@/hooks/useMockQuery';
 import { profileService } from '@/services/profileService';
 import type { ProfileUpdatePayload } from '@/services/profileService';
 
 export function useProfile() {
   const { isAuthenticated, updateCurrentUser } = useAuth();
+  const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const queryFn = useCallback(() => profileService.getProfile(), []);
-  const query = useMockQuery({ queryFn, enabled: isAuthenticated });
+  const query = useQuery({
+    queryKey: ['profile'],
+    queryFn: profileService.getProfile,
+    enabled: isAuthenticated,
+  });
 
-  const saveProfile = useCallback(
-    async (payload: ProfileUpdatePayload) => {
-      setIsSaving(true);
-      setSaveError(null);
-
-      try {
-        const nextProfile = await profileService.updateProfile(payload);
-        updateCurrentUser(nextProfile);
-        query.refetch();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to update profile.';
-        setSaveError(message);
-      } finally {
-        setIsSaving(false);
-      }
+  const saveMutation = useMutation({
+    mutationFn: (payload: ProfileUpdatePayload) => profileService.updateProfile(payload),
+    onSuccess: async (nextProfile) => {
+      updateCurrentUser(nextProfile);
+      await queryClient.invalidateQueries({ queryKey: ['profile'] });
     },
-    [query, updateCurrentUser]
-  );
+  });
+
+  const saveProfile = async (payload: ProfileUpdatePayload) => {
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      await saveMutation.mutateAsync(payload);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update profile.';
+      setSaveError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return {
-    ...query,
+    data: query.data ?? null,
+    isLoading: query.isLoading,
+    error: query.error ? (query.error instanceof Error ? query.error.message : 'Failed to load profile.') : null,
+    refetch: query.refetch,
     isSaving,
     saveError,
     saveProfile,

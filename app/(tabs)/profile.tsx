@@ -103,8 +103,8 @@ export default function ProfileScreen() {
         <CustomButton
           label="Logout"
           variant="outline"
-          onPress={() => {
-            logout();
+          onPress={async () => {
+            await logout();
             router.replace('/(auth)/login');
           }}
           icon={<Ionicons name="log-out-outline" size={16} color={colors.brand.aqua} />}

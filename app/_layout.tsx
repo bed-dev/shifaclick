@@ -1,15 +1,21 @@
+import '../global.css';
+
 import { ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { QueryClientProvider } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 
 import { AuthProvider } from '@/context/AuthContext';
+import { queryClient } from '@/services/queryClient';
 import { appNavigationTheme, colors, typography } from '@/theme/tokens';
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <ThemeProvider value={appNavigationTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider value={appNavigationTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
@@ -31,6 +37,45 @@ export default function RootLayout() {
             options={{
               headerShown: true,
               title: 'New Request',
+              headerStyle: { backgroundColor: colors.surface.card },
+              headerTintColor: colors.text.primary,
+              headerTitleStyle: {
+                fontFamily: typography.fontFamily,
+                fontWeight: '800',
+              },
+            }}
+          />
+          <Stack.Screen
+            name="search/results/[orderId]"
+            options={{
+              headerShown: true,
+              title: 'Pharmacy Results',
+              headerStyle: { backgroundColor: colors.surface.card },
+              headerTintColor: colors.text.primary,
+              headerTitleStyle: {
+                fontFamily: typography.fontFamily,
+                fontWeight: '800',
+              },
+            }}
+          />
+          <Stack.Screen
+            name="search/confirm/[orderId]"
+            options={{
+              headerShown: true,
+              title: 'Confirm Pharmacy',
+              headerStyle: { backgroundColor: colors.surface.card },
+              headerTintColor: colors.text.primary,
+              headerTitleStyle: {
+                fontFamily: typography.fontFamily,
+                fontWeight: '800',
+              },
+            }}
+          />
+          <Stack.Screen
+            name="search/success/[orderId]"
+            options={{
+              headerShown: true,
+              title: 'Order Confirmed',
               headerStyle: { backgroundColor: colors.surface.card },
               headerTintColor: colors.text.primary,
               headerTitleStyle: {
@@ -66,8 +111,10 @@ export default function RootLayout() {
             }}
           />
         </Stack>
-        <StatusBar style="dark" />
-      </ThemeProvider>
-    </AuthProvider>
+          <StatusBar style="dark" />
+          <Toast />
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

@@ -41,7 +41,7 @@ export default function TabLayout() {
         name="feed"
         options={{
           href: isPatient ? undefined : null,
-          title: 'Search',
+          title: 'Home',
           tabBarIcon: ({ color }) => <Ionicons size={22} name="search-outline" color={color} />,
         }}
       />
@@ -49,7 +49,7 @@ export default function TabLayout() {
         name="activity"
         options={{
           href: isPatient ? undefined : null,
-          title: 'Requests',
+          title: 'My Orders',
           tabBarIcon: ({ color }) => <Ionicons size={22} name="document-text-outline" color={color} />,
         }}
       />
@@ -88,6 +88,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
+          href: isPatient || isPharmacist ? undefined : null,
           title: 'Alerts',
           tabBarIcon: ({ color }) => <Ionicons size={22} name="notifications-outline" color={color} />,
         }}

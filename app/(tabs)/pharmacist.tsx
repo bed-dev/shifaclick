@@ -1,149 +1,131 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
-import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { useHighDemandRequests } from '@/hooks/usePharmacy';
-import { colors, radius, spacing, typography } from '@/theme/tokens';
-import type { HighDemandRequest } from '@/types/pharmacy';
-
-const urgencyStyle: Record<HighDemandRequest['urgency'], { bg: string; text: string; label: string }> = {
-  high: { bg: '#FEE2E2', text: '#991B1B', label: 'High urgency' },
-  medium: { bg: '#FEF3C7', text: '#92400E', label: 'Medium urgency' },
-};
+import { NoConnectionState } from '@/components/common/NoConnectionState';
+import {
+  useAcceptOrderMutation,
+  usePharmacistAcceptedOrders,
+  usePharmacistPendingOrders,
+  useRefuseOrderMutation,
+} from '@/hooks/usePharmacist';
+import type { PendingOrder } from '@/types/pharmacist';
 
 export default function PharmacistDashboardScreen() {
-  const { data, isLoading, error } = useHighDemandRequests();
+  const pendingQuery = usePharmacistPendingOrders();
+  const acceptedQuery = usePharmacistAcceptedOrders();
+  const acceptMutation = useAcceptOrderMutation();
+  const refuseMutation = useRefuseOrderMutation();
+
+  const handleAccept = async (orderId: number) => {
+    try {
+      await acceptMutation.mutateAsync(orderId);
+      Toast.show({ type: 'success', text1: 'Order accepted' });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Could not accept order' });
+    }
+  };
+
+  const handleRefuse = async (orderId: number) => {
+    try {
+      await refuseMutation.mutateAsync(orderId);
+      Toast.show({ type: 'success', text1: 'Order refused' });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Could not refuse order' });
+    }
+  };
+
+  if (pendingQuery.error) {
+    return (
+      <View className="flex-1 bg-page p-4">
+        <NoConnectionState onRetry={() => void pendingQuery.refetch()} />
+      </View>
+    );
+  }
 
   return (
-    <ScreenWrapper>
-      <Text style={styles.title}>Local Demand Radar</Text>
-      <Text style={styles.subtitle}>Prioritized local requests to help restock high-need medicines.</Text>
+    <View className="flex-1 bg-page p-4">
+      <Text className="text-[24px] font-extrabold text-dark">Pharmacist Dashboard</Text>
+      <Text className="mt-1 text-[13px] text-slate-500">Live client requests and accepted queue.</Text>
 
-      {isLoading ? <Text style={styles.stateText}>Loading demand list...</Text> : null}
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <View className="mt-3 flex-row gap-2">
+        <View className="flex-1 rounded-2xl border border-[#D6E6EF] bg-white p-3">
+          <Text className="text-[20px] font-extrabold text-dark">{pendingQuery.data?.length ?? 0}</Text>
+          <Text className="text-[11px] font-semibold text-slate-500">Pending requests</Text>
+        </View>
+        <View className="flex-1 rounded-2xl border border-[#D6E6EF] bg-white p-3">
+          <Text className="text-[20px] font-extrabold text-aqua">{acceptedQuery.data?.length ?? 0}</Text>
+          <Text className="text-[11px] font-semibold text-slate-500">Accepted orders</Text>
+        </View>
+      </View>
 
       <FlatList
-        data={data ?? []}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const urgency = urgencyStyle[item.urgency];
-
-          return (
-            <View style={styles.card}>
-              <View style={styles.rowBetween}>
-                <Text style={styles.drugName}>{item.drugName}</Text>
-                <View style={[styles.urgencyBadge, { backgroundColor: urgency.bg }]}>
-                  <Text style={[styles.urgencyText, { color: urgency.text }]}>{urgency.label}</Text>
-                </View>
-              </View>
-
-              <View style={styles.metricsRow}>
-                <Metric label="Requests" value={item.requestedCount.toString()} />
-                <Metric label="Patients Nearby" value={item.nearbyPatients.toString()} />
-              </View>
+        className="mt-4"
+        data={pendingQuery.data ?? []}
+        keyExtractor={(item) => String(item.id)}
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        removeClippedSubviews
+        ItemSeparatorComponent={() => <View className="h-2" />}
+        renderItem={({ item }) => (
+          <PendingOrderCard
+            item={item}
+            onAccept={handleAccept}
+            onRefuse={handleRefuse}
+            disabled={acceptMutation.isPending || refuseMutation.isPending}
+          />
+        )}
+        ListEmptyComponent={
+          !pendingQuery.isLoading ? (
+            <View className="rounded-2xl border border-[#D6E6EF] bg-white p-4">
+              <Text className="text-[14px] font-bold text-dark">No pending client orders</Text>
+              <Text className="mt-1 text-[12px] text-slate-500">New requests will appear automatically.</Text>
             </View>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
+          ) : null
+        }
       />
-    </ScreenWrapper>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.metricBox}>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  title: {
-    color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: spacing.xs,
-  },
-  subtitle: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 14,
-    marginTop: 2,
-    marginBottom: spacing.md,
-  },
-  stateText: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 14,
-  },
-  errorText: {
-    color: colors.status.danger,
-    fontFamily: typography.fontFamily,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  listContent: {
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
-  },
-  card: {
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.surface.border,
-    backgroundColor: '#FFFFFF',
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  drugName: {
-    flex: 1,
-    color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  urgencyBadge: {
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 5,
-  },
-  urgencyText: {
-    fontFamily: typography.fontFamily,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  metricBox: {
-    flex: 1,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: '#D4E2EE',
-    backgroundColor: '#F8FCFF',
-    minHeight: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  metricValue: {
-    color: colors.brand.darkBlue,
-    fontFamily: typography.fontFamily,
-    fontSize: 19,
-    fontWeight: '800',
-  },
-  metricLabel: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-});
+function PendingOrderCard({
+  item,
+  onAccept,
+  onRefuse,
+  disabled,
+}: {
+  item: PendingOrder;
+  onAccept: (orderId: number) => void;
+  onRefuse: (orderId: number) => void;
+  disabled: boolean;
+}) {
+  return (
+    <View className="rounded-2xl border border-[#D6E6EF] bg-white p-4">
+      <View className="flex-row items-center justify-between">
+        <Text className="flex-1 text-[15px] font-extrabold text-dark">{item.medicine_name || 'Prescription request'}</Text>
+        <View className="rounded-full bg-amber-100 px-2 py-1">
+          <Text className="text-[10px] font-bold text-amber-700">{item.status}</Text>
+        </View>
+      </View>
+      <Text className="mt-1 text-[12px] text-slate-500">{item.client_name} • {item.client_phone || 'No phone'}</Text>
+      <Text className="mt-1 text-[12px] text-slate-500">Qty: {item.quantity || '—'} • {item.created_at}</Text>
+      {item.notes ? <Text className="mt-1 text-[12px] text-slate-500">Note: {item.notes}</Text> : null}
+      <View className="mt-3 flex-row gap-2">
+        <Pressable
+          className={`h-10 flex-1 items-center justify-center rounded-xl ${disabled ? 'bg-slate-300' : 'bg-green-600'}`}
+          onPress={() => onAccept(item.id)}
+          disabled={disabled}
+        >
+          <Text className="text-[12px] font-extrabold text-white">Accept</Text>
+        </Pressable>
+        <Pressable
+          className={`h-10 flex-1 items-center justify-center rounded-xl ${disabled ? 'bg-slate-300' : 'bg-red-600'}`}
+          onPress={() => onRefuse(item.id)}
+          disabled={disabled}
+        >
+          <Text className="text-[12px] font-extrabold text-white">Refuse</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}

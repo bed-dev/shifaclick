@@ -15,18 +15,58 @@ import { CustomButton } from '@/components/common/CustomButton';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { TextField } from '@/components/common/TextField';
 import { useAuth } from '@/context/AuthContext';
+import { MOCK_LOGIN_CREDENTIALS } from '@/services/authService';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { UserRole } from '@/types/models';
+
+const roles: { key: UserRole; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'client', label: 'Client', icon: 'person-outline' },
+  { key: 'pharmacist', label: 'Pharmacist', icon: 'medkit-outline' },
+  { key: 'distributor', label: 'Distributor', icon: 'car-outline' },
+];
+
+const defaultRole: UserRole = 'client';
+
+function normalizeRole(role: UserRole | string | undefined | null): UserRole {
+  if (role === 'client' || role === 'pharmacist' || role === 'distributor') {
+    return role;
+  }
+
+  return defaultRole;
+}
+
+function getMockCredentials(role: UserRole | string | undefined | null) {
+  return MOCK_LOGIN_CREDENTIALS[normalizeRole(role)];
+}
 
 export default function LoginScreen() {
   const { login, isLoading } = useAuth();
-  const [email, setEmail] = useState('yacine@example.com');
-  const [password, setPassword] = useState('password123');
+  const defaultCredentials = getMockCredentials(defaultRole);
+  const [role, setRole] = useState<UserRole>(defaultRole);
+  const [email, setEmail] = useState(defaultCredentials.email);
+  const [password, setPassword] = useState(defaultCredentials.password);
   const [error, setError] = useState<string | null>(null);
+  const safeRole = normalizeRole(role);
+  const mockCredentials = getMockCredentials(role);
+
+  const handleRoleSelection = (nextRole: UserRole) => {
+    const nextCredentials = getMockCredentials(nextRole);
+    setRole(nextRole);
+    setEmail(nextCredentials.email);
+    setPassword(nextCredentials.password);
+    setError(null);
+  };
+
+  const applyMockCredentials = () => {
+    setEmail(mockCredentials.email);
+    setPassword(mockCredentials.password);
+    setError(null);
+  };
 
   const handleLogin = async () => {
     try {
       setError(null);
-      await login(email, password);
+      await login(email, password, safeRole);
       router.replace('/');
     } catch (loginError) {
       const message = loginError instanceof Error ? loginError.message : 'Unable to sign in.';
@@ -52,7 +92,28 @@ export default function LoginScreen() {
             </View>
 
             <Text style={styles.title}>Sign in to Pharma Click</Text>
-            <Text style={styles.subtitle}>Use mocked auth for now. API integration is ready for next phase.</Text>
+            <Text style={styles.subtitle}>Access your client, pharmacist, or distributor dashboard.</Text>
+
+            <View style={styles.roleRow}>
+              {roles.map((option) => {
+                const active = option.key === role;
+
+                return (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => handleRoleSelection(option.key)}
+                    style={[styles.roleButton, active && styles.roleButtonActive]}
+                  >
+                    <Ionicons
+                      name={option.icon}
+                      size={18}
+                      color={active ? colors.text.inverted : colors.text.secondary}
+                    />
+                    <Text style={[styles.roleButtonLabel, active && styles.roleButtonLabelActive]}>{option.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
             <View style={styles.formSection}>
               <TextField
@@ -69,6 +130,19 @@ export default function LoginScreen() {
                 placeholder="••••••••"
                 onChangeText={setPassword}
               />
+            </View>
+
+            <View style={styles.mockBox}>
+              <View style={styles.mockHeader}>
+                <Ionicons name="flask-outline" size={16} color={colors.brand.aqua} />
+                <Text style={styles.mockTitle}>Mock login enabled</Text>
+              </View>
+              <Text style={styles.mockText}>
+                {mockCredentials.email} / {mockCredentials.password}
+              </Text>
+              <Pressable onPress={applyMockCredentials} style={styles.mockAction}>
+                <Text style={styles.mockActionText}>Fill mock credentials</Text>
+              </Pressable>
             </View>
 
             {error ? (
@@ -184,6 +258,72 @@ const styles = StyleSheet.create({
   },
   formSection: {
     gap: spacing.sm,
+  },
+  mockBox: {
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#A7D9DD',
+    backgroundColor: '#F4FBFC',
+    padding: spacing.sm,
+    gap: 6,
+  },
+  mockHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  mockTitle: {
+    color: colors.text.primary,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  mockText: {
+    color: colors.text.secondary,
+    fontFamily: typography.fontFamily,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  mockAction: {
+    alignSelf: 'flex-start',
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  mockActionText: {
+    color: colors.brand.darkBlue,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  roleRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  roleButton: {
+    flex: 1,
+    minHeight: 46,
+    borderWidth: 1,
+    borderColor: colors.surface.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface.page,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  roleButtonActive: {
+    backgroundColor: colors.brand.darkBlue,
+    borderColor: colors.brand.darkBlue,
+  },
+  roleButtonLabel: {
+    color: colors.text.secondary,
+    fontFamily: typography.fontFamily,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  roleButtonLabelActive: {
+    color: colors.text.inverted,
   },
   errorBox: {
     borderRadius: radius.md,

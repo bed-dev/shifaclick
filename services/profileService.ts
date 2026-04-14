@@ -1,25 +1,34 @@
-import { delay } from '@/lib/delay';
-import { mockStore } from '@/services/mockStore';
+import { getStoredUser, setStoredUser } from '@/services/tokenStorage';
 import type { UserProfile } from '@/types/models';
 
 export type ProfileUpdatePayload = Pick<UserProfile, 'firstName' | 'lastName' | 'phone' | 'city'>;
 
 export const profileService = {
   async getProfile(): Promise<UserProfile> {
-    await delay(350);
-    return mockStore.getCurrentUser();
+    const stored = await getStoredUser();
+
+    if (!stored) {
+      throw new Error('No active session found.');
+    }
+
+    return JSON.parse(stored) as UserProfile;
   },
 
   async updateProfile(payload: ProfileUpdatePayload): Promise<UserProfile> {
-    await delay(500);
-    const current = mockStore.getCurrentUser();
+    const stored = await getStoredUser();
+
+    if (!stored) {
+      throw new Error('No active session found.');
+    }
+
+    const current = JSON.parse(stored) as UserProfile;
 
     const updated: UserProfile = {
       ...current,
       ...payload,
     };
 
-    mockStore.setCurrentUser(updated);
+    await setStoredUser(JSON.stringify(updated));
     return updated;
   },
 };

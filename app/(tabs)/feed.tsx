@@ -1,313 +1,309 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  FlatList,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
+import type { Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
 
-import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { FilterSheet } from '@/components/pharmacy/FilterSheet';
-import { MapPreview } from '@/components/pharmacy/MapPreview';
-import { PharmacyCard } from '@/components/pharmacy/PharmacyCard';
-import { SkeletonBlock } from '@/components/pharmacy/SkeletonBlock';
-import { StockBadge } from '@/components/pharmacy/StockBadge';
-import { useDrugSearch } from '@/hooks/usePharmacy';
-import { colors, radius, spacing, typography } from '@/theme/tokens';
-import type { PharmacyMatch, SearchFilters } from '@/types/pharmacy';
+import { NoConnectionState } from '@/components/common/NoConnectionState';
+import { UploadBox } from '@/components/pharmacy/UploadBox';
+import { ClientMapView } from '@/components/client/ClientMapView';
+import { useCreateOrder, useMedicineSuggestions } from '@/hooks/useClientFlow';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useLocationPermission } from '@/hooks/useLocationPermission';
+import { NEARBY_PHARMACY_PINS } from '@/services/clientFlowService';
+import { isNetworkError } from '@/services/http';
 
-const DEFAULT_FILTERS: SearchFilters = {
-  maxDistanceKm: 5,
-  onlyOpenNow: false,
-  inStockOnly: false,
-};
+export default function ClientHomeScreen() {
+  const [inputMode, setInputMode] = useState<'text' | 'scan'>('text');
+  const [medicineName, setMedicineName] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [notes, setNotes] = useState('');
+  const [prescriptionUri, setPrescriptionUri] = useState<string | undefined>();
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [selectedPinId, setSelectedPinId] = useState<string>(NEARBY_PHARMACY_PINS[0].id);
 
-export default function PatientHomeScreen() {
-  const [search, setSearch] = useState('Doliprane');
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
-  const [activePharmacy, setActivePharmacy] = useState<PharmacyMatch | null>(null);
+  const debouncedQuery = useDebouncedValue(medicineName, 300);
 
-  const { data, isLoading, error } = useDrugSearch(search, filters);
-  const firstDrug = data?.[0] ?? null;
+  const {
+    data: suggestionData,
+    isLoading: suggestionsLoading,
+    isError: suggestionsError,
+    refetch: refetchSuggestions,
+  } = useMedicineSuggestions(debouncedQuery);
 
-  const mapPoints = useMemo(() => {
-    if (!data?.length) {
-      return [];
+  const createOrder = useCreateOrder();
+  const locationQuery = useLocationPermission();
+
+  const suggestions = useMemo(() => {
+    return suggestionData?.medicines ?? [];
+  }, [suggestionData]);
+
+  const selectedPin = NEARBY_PHARMACY_PINS.find((pin) => pin.id === selectedPinId) ?? NEARBY_PHARMACY_PINS[0];
+  const mapPins = useMemo(() => NEARBY_PHARMACY_PINS.map((pin) => ({ ...pin })), []);
+
+  const hasSuggestionPanel = suggestionsOpen && medicineName.trim().length >= 2;
+
+  const pickFromCamera = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      Toast.show({
+        type: 'error',
+        text1: 'Permission denied',
+        text2: 'Camera access is required to scan a prescription.',
+      });
+      return;
     }
 
-    return data.flatMap((drug) => drug.matches);
-  }, [data]);
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      setPrescriptionUri(result.assets[0]?.uri);
+    }
+  };
+
+  const pickFromGallery = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Toast.show({
+        type: 'error',
+        text1: 'Permission denied',
+        text2: 'Gallery access is required to upload a prescription.',
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      setPrescriptionUri(result.assets[0]?.uri);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (inputMode === 'text' && !medicineName.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Medicine required',
+        text2: 'Enter a medicine name to continue.',
+      });
+      return;
+    }
+
+    if (inputMode === 'scan' && !prescriptionUri) {
+      Toast.show({
+        type: 'error',
+        text1: 'Prescription required',
+        text2: 'Please upload or capture a doctor note.',
+      });
+      return;
+    }
+
+    try {
+      const response = await createOrder.mutateAsync({
+        medicineName,
+        quantity,
+        notes,
+        prescriptionUri,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Request sent',
+        text2: 'Contacting nearby pharmacies now.',
+      });
+
+      router.push({
+        pathname: '/search/results/[orderId]',
+        params: {
+          orderId: String(response.order_id),
+          medicine: medicineName.trim() || 'Prescription upload',
+        },
+      } as Href);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Unable to send request',
+        text2: isNetworkError(error) ? 'No network connection. Please retry.' : 'Please try again.',
+      });
+    }
+  };
 
   return (
-    <ScreenWrapper>
-      <View style={styles.headerWrap}>
-        <Text style={styles.title}>Good morning, find your meds fast</Text>
+    <ScrollView className="flex-1 bg-page" keyboardShouldPersistTaps="handled">
+      <View className="px-4 pt-3 pb-4">
+        <Text className="text-dark text-[22px] font-extrabold">Find your medicine fast</Text>
 
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={17} color={colors.text.muted} />
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Drug, dosage, or brand"
-            placeholderTextColor={colors.text.muted}
-            style={styles.searchInput}
-            accessibilityLabel="Search medicine"
-          />
-          <Pressable onPress={() => setSheetVisible(true)} style={styles.filterButton}>
-            <Ionicons name="options-outline" size={16} color={colors.brand.aqua} />
-          </Pressable>
-        </View>
-
-        <View style={styles.quickActionsRow}>
-          <QuickAction
-            icon="scan-outline"
-            label="Scan Doctor Note"
-            onPress={() => router.push('/tools/scan-note' as any)}
-          />
-          <QuickAction
-            icon="add-circle-outline"
-            label="Add Medication"
-            onPress={() => router.push('/meds/add' as any)}
+        <View className="mt-3">
+          <ClientMapView
+            pins={mapPins}
+            selectedPinId={selectedPinId}
+            locationLabel={locationQuery.data?.label ?? 'Locating...'}
+            locationDenied={Boolean(locationQuery.data?.denied)}
+            userLocation={
+              locationQuery.data
+                ? {
+                    latitude: locationQuery.data.latitude,
+                    longitude: locationQuery.data.longitude,
+                  }
+                : undefined
+            }
+            onSelectPin={(pin) => setSelectedPinId(pin.id)}
           />
         </View>
 
-        <View style={styles.modeToggle}>
-          <Segment active={viewMode === 'map'} label="Map" onPress={() => setViewMode('map')} />
-          <Segment active={viewMode === 'list'} label="List" onPress={() => setViewMode('list')} />
-        </View>
-      </View>
-
-      {isLoading ? (
-        <View style={styles.loadingWrap}>
-          <SkeletonBlock height={220} />
-          <SkeletonBlock height={96} />
-        </View>
-      ) : null}
-
-      {!isLoading && error ? (
-        <View style={styles.centerCard}>
-          <Text style={styles.errorTitle}>Unable to load results</Text>
-          <Text style={styles.errorBody}>{error}</Text>
-        </View>
-      ) : null}
-
-      {!isLoading && !error ? (
-        <>
-          <View style={styles.drugHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.drugName}>{firstDrug ? `${firstDrug.name} ${firstDrug.dosage}` : 'No medicines found'}</Text>
-              {firstDrug ? <Text style={styles.drugMeta}>{firstDrug.brand}</Text> : null}
-            </View>
-            {firstDrug ? <StockBadge status={firstDrug.stockStatus} /> : null}
+        <View className="mt-3 rounded-2xl border border-[#D6E6EF] bg-white p-3">
+          <View className="flex-row rounded-xl bg-[#F7F8FA] p-1">
+            <Pressable
+              className={`flex-1 items-center rounded-lg py-2 ${inputMode === 'text' ? 'bg-white' : ''}`}
+              onPress={() => setInputMode('text')}
+            >
+              <Text className={`text-xs font-bold ${inputMode === 'text' ? 'text-dark' : 'text-slate-400'}`}>Medicine</Text>
+            </Pressable>
+            <Pressable
+              className={`flex-1 items-center rounded-lg py-2 ${inputMode === 'scan' ? 'bg-white' : ''}`}
+              onPress={() => setInputMode('scan')}
+            >
+              <Text className={`text-xs font-bold ${inputMode === 'scan' ? 'text-dark' : 'text-slate-400'}`}>Prescription</Text>
+            </Pressable>
           </View>
 
-          {viewMode === 'map' ? (
-            <View style={styles.mapWrap}>
-              {mapPoints.length ? <MapPreview points={mapPoints} onSelect={setActivePharmacy} /> : null}
-              {activePharmacy ? (
-                <PharmacyCard
-                  pharmacy={activePharmacy}
-                  onPress={() => firstDrug && router.push(`/item/${firstDrug.id}` as any)}
-                />
-              ) : (
-                <Text style={styles.helperText}>Tap a map pin to preview a pharmacy.</Text>
-              )}
+          {inputMode === 'text' ? (
+            <View className="mt-3">
+              <View className="relative">
+                <View className="flex-row items-center rounded-xl border border-[#D6E6EF] bg-[#FBFDFF] px-3">
+                  <Ionicons name="search-outline" size={16} color="#94A3B8" />
+                  <TextInput
+                    value={medicineName}
+                    onChangeText={setMedicineName}
+                    onFocus={() => setSuggestionsOpen(true)}
+                    placeholder="Search medicine"
+                    placeholderTextColor="#94A3B8"
+                    className="ml-2 h-11 flex-1 text-[14px] font-semibold text-dark"
+                  />
+                </View>
+
+                {hasSuggestionPanel ? (
+                  <View className="absolute left-0 right-0 top-12 z-20 max-h-72 overflow-hidden rounded-xl border border-[#D6E6EF] bg-white">
+                    {suggestionsError ? (
+                      <View className="p-3">
+                        <NoConnectionState
+                          title="No Connection"
+                          message="Could not load suggestions."
+                          onRetry={() => {
+                            void refetchSuggestions();
+                          }}
+                        />
+                      </View>
+                    ) : (
+                      <FlatList
+                        data={suggestions}
+                        keyExtractor={(item) => String(item.id)}
+                        keyboardShouldPersistTaps="handled"
+                        initialNumToRender={8}
+                        maxToRenderPerBatch={10}
+                        windowSize={5}
+                        removeClippedSubviews
+                        ListHeaderComponent={
+                          suggestionsLoading ? (
+                            <View className="border-b border-[#F1F5F9] px-3 py-2">
+                              <Text className="text-xs font-semibold text-slate-400">Searching...</Text>
+                            </View>
+                          ) : (
+                            <View className="border-b border-[#F1F5F9] px-3 py-2">
+                              <Text className="text-xs font-semibold text-slate-400">Suggestions</Text>
+                            </View>
+                          )
+                        }
+                        renderItem={({ item }) => (
+                          <Pressable
+                            className="border-b border-[#F8FAFC] px-3 py-2"
+                            onPress={() => {
+                              setMedicineName(item.text);
+                              setSuggestionsOpen(false);
+                              Keyboard.dismiss();
+                            }}
+                          >
+                            <Text className="text-[13px] font-bold text-dark">{item.text}</Text>
+                            <Text className="mt-0.5 text-[11px] text-slate-400">{item.subtitle}</Text>
+                          </Pressable>
+                        )}
+                        ListEmptyComponent={
+                          !suggestionsLoading ? (
+                            <View className="px-3 py-4">
+                              <Text className="text-xs text-slate-400">No medicines found.</Text>
+                            </View>
+                          ) : null
+                        }
+                      />
+                    )}
+                  </View>
+                ) : null}
+              </View>
+
+              <TextInput
+                value={quantity}
+                onChangeText={setQuantity}
+                placeholder="Quantity (optional)"
+                placeholderTextColor="#94A3B8"
+                className="mt-2 h-11 rounded-xl border border-[#D6E6EF] bg-[#FBFDFF] px-3 text-[14px] font-semibold text-dark"
+              />
+
+              <TextInput
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Notes for pharmacist (optional)"
+                placeholderTextColor="#94A3B8"
+                className="mt-2 h-11 rounded-xl border border-[#D6E6EF] bg-[#FBFDFF] px-3 text-[14px] font-semibold text-dark"
+              />
             </View>
           ) : (
-            <FlatList
-              data={firstDrug?.matches ?? []}
-              keyExtractor={(item) => item.pharmacyId}
-              contentContainerStyle={styles.listContent}
-              renderItem={({ item }) => (
-                <PharmacyCard pharmacy={item} onPress={() => firstDrug && router.push(`/item/${firstDrug.id}` as any)} />
-              )}
-              ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-            />
+            <View className="mt-3">
+              <UploadBox uri={prescriptionUri} onCameraPress={pickFromCamera} onGalleryPress={pickFromGallery} />
+            </View>
           )}
-        </>
-      ) : null}
 
-      <FilterSheet
-        visible={sheetVisible}
-        value={filters}
-        onClose={() => setSheetVisible(false)}
-        onApply={(next) => {
-          setFilters(next);
-          setSheetVisible(false);
-        }}
-      />
-    </ScreenWrapper>
+          <Pressable
+            className={`mt-3 h-12 items-center justify-center rounded-xl ${createOrder.isPending ? 'bg-slate-400' : 'bg-dark'}`}
+            onPress={() => {
+              setSuggestionsOpen(false);
+              Keyboard.dismiss();
+              void handleSubmit();
+            }}
+            disabled={createOrder.isPending}
+          >
+            <Text className="text-sm font-extrabold text-white">
+              {createOrder.isPending ? 'Sending...' : 'Search Nearby Pharmacies'}
+            </Text>
+          </Pressable>
+
+          <View className="mt-2 flex-row items-center justify-center">
+            <Ionicons name="location-outline" size={12} color="#64748B" />
+            <Text className="ml-1 text-[11px] font-semibold text-slate-500">
+              Closest: {selectedPin.name} ({selectedPin.distanceKm} km)
+            </Text>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
-
-function QuickAction({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable style={styles.quickAction} onPress={onPress}>
-      <Ionicons name={icon} size={16} color={colors.brand.aqua} />
-      <Text style={styles.quickActionLabel}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function Segment({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={[styles.segment, active && styles.segmentActive]}>
-      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-const styles = StyleSheet.create({
-  headerWrap: {
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  title: {
-    color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  searchBar: {
-    minHeight: 46,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: '#C9DCE9',
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-  },
-  searchInput: {
-    flex: 1,
-    fontFamily: typography.fontFamily,
-    color: colors.text.primary,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  filterButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EAF7FA',
-  },
-  quickActionsRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  quickAction: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: '#C8DEEA',
-    backgroundColor: '#F5FCFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  quickActionLabel: {
-    color: colors.brand.aqua,
-    fontFamily: typography.fontFamily,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  modeToggle: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  segment: {
-    flex: 1,
-    minHeight: 36,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: '#C8DEEA',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F6FBFF',
-  },
-  segmentActive: {
-    borderColor: colors.brand.aqua,
-    backgroundColor: '#DBF2F5',
-  },
-  segmentText: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  segmentTextActive: {
-    color: colors.brand.aqua,
-  },
-  loadingWrap: {
-    marginTop: spacing.md,
-    gap: spacing.sm,
-  },
-  drugHeader: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  drugName: {
-    color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 17,
-    fontWeight: '800',
-  },
-  drugMeta: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  mapWrap: {
-    gap: spacing.sm,
-    paddingBottom: spacing.md,
-  },
-  helperText: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 12,
-  },
-  listContent: {
-    paddingBottom: spacing.lg,
-  },
-  centerCard: {
-    marginTop: spacing.md,
-    minHeight: 110,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.surface.border,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    padding: spacing.md,
-  },
-  errorTitle: {
-    color: colors.status.danger,
-    fontFamily: typography.fontFamily,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  errorBody: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 13,
-    textAlign: 'center',
-  },
-});
