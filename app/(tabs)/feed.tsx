@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import type { Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 import { NoConnectionState } from "@/components/common/NoConnectionState";
@@ -164,8 +165,9 @@ export default function ClientHomeScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-page" keyboardShouldPersistTaps="handled">
-      <View className="px-4 pb-4 pt-3">
+    <SafeAreaView className="flex-1 bg-page" edges={["top"]}>
+      <ScrollView className="flex-1 bg-page" keyboardShouldPersistTaps="handled">
+        <View className="px-4 pb-4 pt-3">
         {/* --- Page title --- */}
         <Text className="text-[22px] font-extrabold leading-7 text-dark">
           Find your medicine fast
@@ -368,7 +370,8 @@ export default function ClientHomeScreen() {
             </Text>
           </View>
         </View>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

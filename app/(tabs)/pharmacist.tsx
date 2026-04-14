@@ -1,5 +1,6 @@
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { NoConnectionState } from '@/components/common/NoConnectionState';
@@ -38,14 +39,17 @@ export default function PharmacistDashboardScreen() {
 
   if (pendingQuery.error) {
     return (
-      <View className="flex-1 bg-page p-4">
-        <NoConnectionState onRetry={() => void pendingQuery.refetch()} />
-      </View>
+      <SafeAreaView className="flex-1 bg-page" edges={['top']}>
+        <View className="flex-1 p-4">
+          <NoConnectionState onRetry={() => void pendingQuery.refetch()} />
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View className="flex-1 bg-page p-4">
+    <SafeAreaView className="flex-1 bg-page" edges={['top']}>
+      <View className="flex-1 p-4">
       {/* Header */}
       <Text className="text-[22px] font-extrabold leading-7 text-dark">Pharmacist Dashboard</Text>
       <Text className="mt-1 text-[12px] font-medium text-text-secondary">
@@ -93,7 +97,8 @@ export default function PharmacistDashboardScreen() {
           ) : null
         }
       />
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 

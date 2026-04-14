@@ -1,4 +1,5 @@
 import { FlatList, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { NoConnectionState } from '@/components/common/NoConnectionState';
@@ -36,17 +37,20 @@ export default function DistributorDashboardScreen() {
 
   if (pendingQuery.error && statsQuery.error) {
     return (
-      <View className="flex-1 bg-page p-4">
-        <NoConnectionState onRetry={() => {
-          void pendingQuery.refetch();
-          void statsQuery.refetch();
-        }} />
-      </View>
+      <SafeAreaView className="flex-1 bg-page" edges={['top']}>
+        <View className="flex-1 p-4">
+          <NoConnectionState onRetry={() => {
+            void pendingQuery.refetch();
+            void statsQuery.refetch();
+          }} />
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View className="flex-1 bg-page p-4">
+    <SafeAreaView className="flex-1 bg-page" edges={['top']}>
+      <View className="flex-1 p-4">
       <Text className="text-[24px] font-extrabold text-dark">Distributor Dashboard</Text>
       <Text className="mt-1 text-[13px] text-slate-500">Live supply requests from partner pharmacies.</Text>
 
@@ -89,7 +93,8 @@ export default function DistributorDashboardScreen() {
           ) : null
         }
       />
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 

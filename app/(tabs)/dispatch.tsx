@@ -1,4 +1,5 @@
 import { FlatList, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { NoConnectionState } from '@/components/common/NoConnectionState';
@@ -25,17 +26,20 @@ export default function DispatchScreen() {
 
   if (acceptedQuery.error && historyQuery.error) {
     return (
-      <View className="flex-1 bg-page p-4">
-        <NoConnectionState onRetry={() => {
-          void acceptedQuery.refetch();
-          void historyQuery.refetch();
-        }} />
-      </View>
+      <SafeAreaView className="flex-1 bg-page" edges={['top']}>
+        <View className="flex-1 p-4">
+          <NoConnectionState onRetry={() => {
+            void acceptedQuery.refetch();
+            void historyQuery.refetch();
+          }} />
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View className="flex-1 bg-page p-4">
+    <SafeAreaView className="flex-1 bg-page" edges={['top']}>
+      <View className="flex-1 p-4">
       <Text className="text-[24px] font-extrabold text-dark">Dispatch & History</Text>
       <Text className="mt-1 text-[13px] text-slate-500">Finalize accepted orders and track delivered history.</Text>
 
@@ -73,7 +77,8 @@ export default function DispatchScreen() {
         ItemSeparatorComponent={() => <View className="h-2" />}
         renderItem={({ item }) => <HistoryCard item={item} />}
       />
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
