@@ -57,35 +57,57 @@ export const clientFlowService = {
   },
 
   async createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
+    const medicineName = payload.medicineName?.trim();
+    const quantity = payload.quantity?.trim();
+    const notes = payload.notes?.trim();
+
+    if (!payload.prescriptionUri) {
+      const body: Record<string, string> = {};
+
+      if (medicineName) {
+        body.medicine_name = medicineName;
+      }
+
+      if (quantity) {
+        body.quantity = quantity;
+      }
+
+      if (notes) {
+        body.notes = notes;
+      }
+
+      const { data } = await http.post<CreateOrderResponse>('/client/order/create/', body, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return data;
+    }
+
     const formData = new FormData();
 
-    if (payload.medicineName?.trim()) {
-      formData.append('medicine_name', payload.medicineName.trim());
+    if (medicineName) {
+      formData.append('medicine_name', medicineName);
     }
 
-    if (payload.quantity?.trim()) {
-      formData.append('quantity', payload.quantity.trim());
+    if (quantity) {
+      formData.append('quantity', quantity);
     }
 
-    if (payload.notes?.trim()) {
-      formData.append('notes', payload.notes.trim());
+    if (notes) {
+      formData.append('notes', notes);
     }
 
-    if (payload.prescriptionUri) {
-      const fileBlobLike = {
-        uri: payload.prescriptionUri,
-        name: 'prescription.jpg',
-        type: 'image/jpeg',
-      } as unknown as Blob;
+    const fileBlobLike = {
+      uri: payload.prescriptionUri,
+      name: 'prescription.jpg',
+      type: 'image/jpeg',
+    } as unknown as Blob;
 
-      formData.append('prescription', fileBlobLike);
-    }
+    formData.append('prescription', fileBlobLike);
 
-    const { data } = await http.post<CreateOrderResponse>('/client/order/create/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const { data } = await http.post<CreateOrderResponse>('/client/order/create/', formData);
 
     return data;
   },
