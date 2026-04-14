@@ -146,6 +146,7 @@ export default function ClientHomeScreen() {
         },
       } as Href);
     } catch (error) {
+      console.log(error);
       Toast.show({
         type: "error",
         text1: "Unable to send request",
