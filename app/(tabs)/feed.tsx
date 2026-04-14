@@ -9,9 +9,9 @@ import { MapPreview } from '@/components/pharmacy/MapPreview';
 import { PharmacyCard } from '@/components/pharmacy/PharmacyCard';
 import { SkeletonBlock } from '@/components/pharmacy/SkeletonBlock';
 import { StockBadge } from '@/components/pharmacy/StockBadge';
-import { useDrugSearch } from '@/src/hooks/usePharmacy';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { PharmacyMatch, SearchFilters } from '@/src/types/pharmacy';
+import { useDrugSearch } from '@/hooks/usePharmacy';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { PharmacyMatch, SearchFilters } from '@/types/pharmacy';
 
 const DEFAULT_FILTERS: SearchFilters = {
   maxDistanceKm: 5,
@@ -27,7 +27,6 @@ export default function PatientHomeScreen() {
   const [activePharmacy, setActivePharmacy] = useState<PharmacyMatch | null>(null);
 
   const { data, isLoading, error } = useDrugSearch(search, filters);
-
   const firstDrug = data?.[0] ?? null;
 
   const mapPoints = useMemo(() => {
@@ -41,15 +40,14 @@ export default function PatientHomeScreen() {
   return (
     <ScreenWrapper>
       <View style={styles.headerWrap}>
-        <Text style={styles.title}>Find medicines nearby</Text>
-        <Text style={styles.subtitle}>Fast stock visibility for patients with pharmacy-level status.</Text>
+        <Text style={styles.title}>Good morning, find your meds fast</Text>
 
         <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color={colors.text.muted} />
+          <Ionicons name="search-outline" size={17} color={colors.text.muted} />
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Search drug or brand"
+            placeholder="Drug, dosage, or brand"
             placeholderTextColor={colors.text.muted}
             style={styles.searchInput}
             accessibilityLabel="Search medicine"
@@ -59,23 +57,35 @@ export default function PatientHomeScreen() {
           </Pressable>
         </View>
 
+        <View style={styles.quickActionsRow}>
+          <QuickAction
+            icon="scan-outline"
+            label="Scan Doctor Note"
+            onPress={() => router.push('/tools/scan-note' as any)}
+          />
+          <QuickAction
+            icon="add-circle-outline"
+            label="Add Medication"
+            onPress={() => router.push('/meds/add' as any)}
+          />
+        </View>
+
         <View style={styles.modeToggle}>
-          <Segment active={viewMode === 'map'} label="Map View" onPress={() => setViewMode('map')} />
-          <Segment active={viewMode === 'list'} label="List View" onPress={() => setViewMode('list')} />
+          <Segment active={viewMode === 'map'} label="Map" onPress={() => setViewMode('map')} />
+          <Segment active={viewMode === 'list'} label="List" onPress={() => setViewMode('list')} />
         </View>
       </View>
 
       {isLoading ? (
         <View style={styles.loadingWrap}>
-          <SkeletonBlock height={250} />
-          <SkeletonBlock height={102} />
-          <SkeletonBlock height={102} />
+          <SkeletonBlock height={220} />
+          <SkeletonBlock height={96} />
         </View>
       ) : null}
 
       {!isLoading && error ? (
         <View style={styles.centerCard}>
-          <Text style={styles.errorTitle}>Unable to load search results</Text>
+          <Text style={styles.errorTitle}>Unable to load results</Text>
           <Text style={styles.errorBody}>{error}</Text>
         </View>
       ) : null}
@@ -83,29 +93,24 @@ export default function PatientHomeScreen() {
       {!isLoading && !error ? (
         <>
           <View style={styles.drugHeader}>
-            <Text style={styles.drugName}>
-              {firstDrug ? `${firstDrug.name} ${firstDrug.dosage}` : 'No matching medicines'}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.drugName}>{firstDrug ? `${firstDrug.name} ${firstDrug.dosage}` : 'No medicines found'}</Text>
+              {firstDrug ? <Text style={styles.drugMeta}>{firstDrug.brand}</Text> : null}
+            </View>
             {firstDrug ? <StockBadge status={firstDrug.stockStatus} /> : null}
           </View>
 
           {viewMode === 'map' ? (
             <View style={styles.mapWrap}>
-              {mapPoints.length ? (
-                <MapPreview points={mapPoints} onSelect={setActivePharmacy} />
-              ) : (
-                <View style={styles.centerCard}>
-                  <Text style={styles.emptyTitle}>No pharmacy matches</Text>
-                  <Text style={styles.emptyBody}>Try broadening your filters or search term.</Text>
-                </View>
-              )}
-
+              {mapPoints.length ? <MapPreview points={mapPoints} onSelect={setActivePharmacy} /> : null}
               {activePharmacy ? (
                 <PharmacyCard
                   pharmacy={activePharmacy}
-                  onPress={() => firstDrug && router.push(`/item/${firstDrug.id}`)}
+                  onPress={() => firstDrug && router.push(`/item/${firstDrug.id}` as any)}
                 />
-              ) : null}
+              ) : (
+                <Text style={styles.helperText}>Tap a map pin to preview a pharmacy.</Text>
+              )}
             </View>
           ) : (
             <FlatList
@@ -113,7 +118,7 @@ export default function PatientHomeScreen() {
               keyExtractor={(item) => item.pharmacyId}
               contentContainerStyle={styles.listContent}
               renderItem={({ item }) => (
-                <PharmacyCard pharmacy={item} onPress={() => firstDrug && router.push(`/item/${firstDrug.id}`)} />
+                <PharmacyCard pharmacy={item} onPress={() => firstDrug && router.push(`/item/${firstDrug.id}` as any)} />
               )}
               ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
             />
@@ -134,6 +139,23 @@ export default function PatientHomeScreen() {
   );
 }
 
+function QuickAction({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={styles.quickAction} onPress={onPress}>
+      <Ionicons name={icon} size={16} color={colors.brand.aqua} />
+      <Text style={styles.quickActionLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
 function Segment({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={[styles.segment, active && styles.segmentActive]}>
@@ -150,17 +172,11 @@ const styles = StyleSheet.create({
   title: {
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '800',
   },
-  subtitle: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 14,
-    lineHeight: 20,
-  },
   searchBar: {
-    minHeight: 50,
+    minHeight: 46,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: '#C9DCE9',
@@ -174,16 +190,38 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: typography.fontFamily,
     color: colors.text.primary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   filterButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#EAF7FA',
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  quickAction: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#C8DEEA',
+    backgroundColor: '#F5FCFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  quickActionLabel: {
+    color: colors.brand.aqua,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    fontWeight: '800',
   },
   modeToggle: {
     flexDirection: 'row',
@@ -191,7 +229,7 @@ const styles = StyleSheet.create({
   },
   segment: {
     flex: 1,
-    minHeight: 42,
+    minHeight: 36,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: '#C8DEEA',
@@ -206,7 +244,7 @@ const styles = StyleSheet.create({
   segmentText: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
   segmentTextActive: {
@@ -217,7 +255,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   drugHeader: {
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     marginBottom: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,22 +263,32 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   drugName: {
-    flex: 1,
     color: colors.text.primary,
     fontFamily: typography.fontFamily,
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '800',
+  },
+  drugMeta: {
+    color: colors.text.secondary,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    marginTop: 2,
   },
   mapWrap: {
     gap: spacing.sm,
     paddingBottom: spacing.md,
+  },
+  helperText: {
+    color: colors.text.secondary,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
   },
   listContent: {
     paddingBottom: spacing.lg,
   },
   centerCard: {
     marginTop: spacing.md,
-    minHeight: 120,
+    minHeight: 110,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.surface.border,
@@ -257,18 +305,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   errorBody: {
-    color: colors.text.secondary,
-    fontFamily: typography.fontFamily,
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  emptyTitle: {
-    color: colors.text.primary,
-    fontFamily: typography.fontFamily,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  emptyBody: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
     fontSize: 13,

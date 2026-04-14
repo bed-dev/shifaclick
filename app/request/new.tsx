@@ -6,9 +6,9 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { CustomButton } from '@/components/common/CustomButton';
 import { UploadBox } from '@/components/pharmacy/UploadBox';
-import { pharmacyService } from '@/src/services/pharmacyService';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { DrugForm } from '@/src/types/pharmacy';
+import { pharmacyService } from '@/services/pharmacyService';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { DrugForm } from '@/types/pharmacy';
 
 const forms: DrugForm[] = ['pill', 'gel', 'syrup', 'injection'];
 

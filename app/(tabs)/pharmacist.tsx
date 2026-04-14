@@ -1,9 +1,9 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { useHighDemandRequests } from '@/src/hooks/usePharmacy';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { HighDemandRequest } from '@/src/types/pharmacy';
+import { useHighDemandRequests } from '@/hooks/usePharmacy';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { HighDemandRequest } from '@/types/pharmacy';
 
 const urgencyStyle: Record<HighDemandRequest['urgency'], { bg: string; text: string; label: string }> = {
   high: { bg: '#FEE2E2', text: '#991B1B', label: 'High urgency' },

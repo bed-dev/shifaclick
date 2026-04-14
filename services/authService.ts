@@ -1,6 +1,6 @@
-import { delay } from '@/src/lib/delay';
-import { mockStore } from '@/src/services/mockStore';
-import type { AuthSession, RegisterPayload, UserProfile } from '@/src/types/models';
+import { delay } from '@/lib/delay';
+import { mockStore } from '@/services/mockStore';
+import type { AuthSession, RegisterPayload, UserProfile } from '@/types/models';
 
 const buildSession = (user: UserProfile): AuthSession => ({
   token: `mock-token-${user.id}`,

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { radius } from '@/src/theme/tokens';
+import { radius } from '@/theme/tokens';
 
 export function SkeletonBlock({ height = 16, width = '100%' }: { height?: number; width?: number | `${number}%` }) {
   return <View style={[styles.base, { height, width }]} />;

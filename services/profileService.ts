@@ -1,6 +1,6 @@
-import { delay } from '@/src/lib/delay';
-import { mockStore } from '@/src/services/mockStore';
-import type { UserProfile } from '@/src/types/models';
+import { delay } from '@/lib/delay';
+import { mockStore } from '@/services/mockStore';
+import type { UserProfile } from '@/types/models';
 
 export type ProfileUpdatePayload = Pick<UserProfile, 'firstName' | 'lastName' | 'phone' | 'city'>;
 

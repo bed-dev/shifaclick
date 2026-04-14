@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 
-import { useAuth } from '@/src/context/AuthContext';
-import { useMockQuery } from '@/src/hooks/useMockQuery';
-import { profileService } from '@/src/services/profileService';
-import type { ProfileUpdatePayload } from '@/src/services/profileService';
+import { useAuth } from '@/context/AuthContext';
+import { useMockQuery } from '@/hooks/useMockQuery';
+import { profileService } from '@/services/profileService';
+import type { ProfileUpdatePayload } from '@/services/profileService';
 
 export function useProfile() {
   const { isAuthenticated, updateCurrentUser } = useAuth();

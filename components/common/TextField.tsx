@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 interface TextFieldProps {
   label: string;

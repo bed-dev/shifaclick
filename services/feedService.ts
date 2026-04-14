@@ -1,6 +1,6 @@
-import { delay } from '@/src/lib/delay';
-import { mockStore } from '@/src/services/mockStore';
-import type { FeedItem } from '@/src/types/models';
+import { delay } from '@/lib/delay';
+import { mockStore } from '@/services/mockStore';
+import type { FeedItem } from '@/types/models';
 
 export interface FeedResponse {
   featured: FeedItem[];

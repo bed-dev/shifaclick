@@ -2,7 +2,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, spacing } from '@/src/theme/tokens';
+import { colors, spacing } from '@/theme/tokens';
 
 interface ScreenWrapperProps extends PropsWithChildren {
   header?: ReactNode;

@@ -14,8 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { TextField } from '@/components/common/TextField';
-import { useAuth } from '@/src/context/AuthContext';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
+import { useAuth } from '@/context/AuthContext';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function LoginScreen() {
   const { login, isLoading } = useAuth();

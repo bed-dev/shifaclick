@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 interface CustomButtonProps {
   label: string;

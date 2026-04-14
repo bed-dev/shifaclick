@@ -4,9 +4,9 @@ import * as Haptics from 'expo-haptics';
 
 import { CustomButton } from '@/components/common/CustomButton';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { pharmacyService } from '@/src/services/pharmacyService';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { DrugStockStatus } from '@/src/types/pharmacy';
+import { pharmacyService } from '@/services/pharmacyService';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { DrugStockStatus } from '@/types/pharmacy';
 
 const statusOptions: DrugStockStatus[] = ['in', 'low', 'out'];
 

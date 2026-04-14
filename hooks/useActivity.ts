@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
-import { useMockQuery } from '@/src/hooks/useMockQuery';
-import { activityService } from '@/src/services/activityService';
+import { useMockQuery } from '@/hooks/useMockQuery';
+import { activityService } from '@/services/activityService';
 
 export function useActivity() {
   const queryFn = useCallback(() => activityService.getActivity(), []);

@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { FeedItem } from '@/src/types/models';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { FeedItem } from '@/types/models';
 
 interface ContentCardProps {
   item: FeedItem;

@@ -1,14 +1,20 @@
-import { delay } from '@/src/lib/delay';
+import { delay } from '@/lib/delay';
 import type {
+  AddMedicationPayload,
   AppNotification,
+  DispatchItem,
+  DistributorKpi,
+  DistributorOrder,
+  DoctorNoteScanResult,
   DrugDetails,
   DrugRequestPayload,
   DrugSearchResult,
   HighDemandRequest,
+  ParsedMedication,
   PatientRequest,
   ScannerUpdatePayload,
   SearchFilters,
-} from '@/src/types/pharmacy';
+} from '@/types/pharmacy';
 
 const DEFAULT_FILTERS: SearchFilters = {
   maxDistanceKm: 5,
@@ -195,6 +201,75 @@ const HIGH_DEMAND: HighDemandRequest[] = [
   { id: 'hd-003', drugName: 'Ventolin Inhaler', requestedCount: 8, nearbyPatients: 12, urgency: 'medium' },
 ];
 
+const DISTRIBUTOR_KPIS: DistributorKpi[] = [
+  { label: 'Open Orders', value: '46' },
+  { label: 'Today Dispatches', value: '12' },
+  { label: 'Fill Rate', value: '93%' },
+  { label: 'Cold-chain Alerts', value: '1' },
+];
+
+const DISTRIBUTOR_ORDERS: DistributorOrder[] = [
+  {
+    id: 'ord-001',
+    pharmacyName: 'Pharmacie Centrale',
+    city: 'Oran',
+    drugName: 'Insulin Glargine',
+    requestedUnits: 24,
+    priority: 'urgent',
+    status: 'pending',
+  },
+  {
+    id: 'ord-002',
+    pharmacyName: 'Pharmacie Ibn Sina',
+    city: 'Oran',
+    drugName: 'Augmentin 875mg',
+    requestedUnits: 40,
+    priority: 'urgent',
+    status: 'allocated',
+  },
+  {
+    id: 'ord-003',
+    pharmacyName: 'Pharmacie El Hikma',
+    city: 'Mostaganem',
+    drugName: 'Ventolin Inhaler',
+    requestedUnits: 30,
+    priority: 'normal',
+    status: 'in_transit',
+  },
+];
+
+const DISPATCH_ITEMS: DispatchItem[] = [
+  {
+    id: 'dsp-001',
+    destination: 'Oran Central District',
+    eta: '10:45',
+    packageCount: 7,
+    driverName: 'K. Mansouri',
+    status: 'packing',
+  },
+  {
+    id: 'dsp-002',
+    destination: 'Es Senia',
+    eta: '11:25',
+    packageCount: 4,
+    driverName: 'A. Rahmani',
+    status: 'out_for_delivery',
+  },
+  {
+    id: 'dsp-003',
+    destination: 'Mostaganem',
+    eta: 'Delivered 09:05',
+    packageCount: 6,
+    driverName: 'S. Bouzid',
+    status: 'delivered',
+  },
+];
+
+const MOCK_PARSED_MEDICATIONS: ParsedMedication[] = [
+  { id: 'pm-001', name: 'Doliprane', dosage: '1000mg', frequency: 'Every 8h', durationDays: 3 },
+  { id: 'pm-002', name: 'Augmentin', dosage: '875mg/125mg', frequency: 'Every 12h', durationDays: 7 },
+];
+
 function applyFilters(results: DrugSearchResult[], filters: SearchFilters): DrugSearchResult[] {
   return results
     .map((result) => ({
@@ -305,6 +380,48 @@ export const pharmacyService = {
       ok: true,
       updatedAt: new Date().toISOString(),
     };
+  },
+
+  async scanDoctorNote(imageUri?: string): Promise<DoctorNoteScanResult> {
+    await delay(900);
+
+    if (!imageUri) {
+      throw new Error('Doctor note image is required for scanning.');
+    }
+
+    return {
+      confidence: 0.93,
+      physicianName: 'Dr. K. Bensalem',
+      issuedAt: '2026-04-13',
+      medications: MOCK_PARSED_MEDICATIONS,
+    };
+  },
+
+  async addMedication(payload: AddMedicationPayload): Promise<{ medicationId: string }> {
+    await delay(450);
+
+    if (!payload.name.trim() || !payload.dosage.trim() || payload.quantity < 1) {
+      throw new Error('Medication name, dosage, and quantity are required.');
+    }
+
+    return {
+      medicationId: `med-${Date.now()}`,
+    };
+  },
+
+  async getDistributorKpis(): Promise<DistributorKpi[]> {
+    await delay(300);
+    return DISTRIBUTOR_KPIS;
+  },
+
+  async getDistributorOrders(): Promise<DistributorOrder[]> {
+    await delay(350);
+    return DISTRIBUTOR_ORDERS;
+  },
+
+  async getDispatchItems(): Promise<DispatchItem[]> {
+    await delay(350);
+    return DISPATCH_ITEMS;
   },
 
 };

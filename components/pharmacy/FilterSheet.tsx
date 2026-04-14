@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { CustomButton } from '@/components/common/CustomButton';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { SearchFilters } from '@/src/types/pharmacy';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { SearchFilters } from '@/types/pharmacy';
 
 interface FilterSheetProps {
   visible: boolean;

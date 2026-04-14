@@ -2,8 +2,8 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { StockBadge } from '@/components/pharmacy/StockBadge';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { PharmacyMatch } from '@/src/types/pharmacy';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { PharmacyMatch } from '@/types/pharmacy';
 
 interface MapPreviewProps {
   points: PharmacyMatch[];

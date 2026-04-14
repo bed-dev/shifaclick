@@ -2,9 +2,9 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
-import { useNotificationCenter } from '@/src/hooks/usePharmacy';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
-import type { AppNotification } from '@/src/types/pharmacy';
+import { useNotificationCenter } from '@/hooks/usePharmacy';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
+import type { AppNotification } from '@/types/pharmacy';
 
 const iconByType: Record<AppNotification['type'], keyof typeof Ionicons.glyphMap> = {
   stock_alert: 'warning-outline',

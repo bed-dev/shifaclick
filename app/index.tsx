@@ -1,8 +1,8 @@
 import { ActivityIndicator, View } from 'react-native';
 import { Redirect } from 'expo-router';
 
-import { useAuth } from '@/src/context/AuthContext';
-import { colors } from '@/src/theme/tokens';
+import { useAuth } from '@/context/AuthContext';
+import { colors } from '@/theme/tokens';
 
 export default function IndexScreen() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -16,7 +16,15 @@ export default function IndexScreen() {
   }
 
   if (isAuthenticated) {
-    return <Redirect href={(user?.role === 'pharmacist' ? '/(tabs)/pharmacist' : '/(tabs)/feed') as any} />;
+    if (user?.role === 'pharmacist') {
+      return <Redirect href={'/(tabs)/pharmacist' as any} />;
+    }
+
+    if (user?.role === 'distributor') {
+      return <Redirect href={'/(tabs)/distributor' as any} />;
+    }
+
+    return <Redirect href={'/(tabs)/feed' as any} />;
   }
 
   return <Redirect href="/(auth)/login" />;

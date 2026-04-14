@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { radius, spacing, typography } from '@/src/theme/tokens';
-import type { DrugStockStatus } from '@/src/types/pharmacy';
+import { radius, spacing, typography } from '@/theme/tokens';
+import type { DrugStockStatus } from '@/types/pharmacy';
 
 const stockConfig: Record<DrugStockStatus, { label: string; bg: string; text: string }> = {
   in: { label: 'In Stock', bg: '#DCFCE7', text: '#166534' },

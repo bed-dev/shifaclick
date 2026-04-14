@@ -6,9 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ScreenWrapper } from '@/components/common/ScreenWrapper';
 import { TextField } from '@/components/common/TextField';
-import { useAuth } from '@/src/context/AuthContext';
-import { useProfile } from '@/src/hooks/useProfile';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
+import { useAuth } from '@/context/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 const secondaryLinks = [
   { key: 'help', title: 'Help Center', icon: 'help-circle-outline' as const },
@@ -52,7 +52,12 @@ export default function ProfileScreen() {
             <Text style={styles.nameText}>{profile?.firstName} {profile?.lastName}</Text>
             <Text style={styles.emailText}>{profile?.email}</Text>
             <Text style={styles.roleText}>
-              {profile?.role === 'pharmacist' ? 'PHARMACIST MODE' : 'PATIENT MODE'} · {profile?.verified ? 'Verified' : 'Pending'}
+              {profile?.role === 'pharmacist'
+                ? 'PHARMACIST MODE'
+                : profile?.role === 'distributor'
+                  ? 'DISTRIBUTOR MODE'
+                  : 'PATIENT MODE'}{' '}
+              · {profile?.verified ? 'Verified' : 'Pending'}
             </Text>
           </View>
         </View>

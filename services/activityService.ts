@@ -1,6 +1,6 @@
-import { delay } from '@/src/lib/delay';
-import { mockStore } from '@/src/services/mockStore';
-import type { ActivityItem } from '@/src/types/models';
+import { delay } from '@/lib/delay';
+import { mockStore } from '@/services/mockStore';
+import type { ActivityItem } from '@/types/models';
 
 export const activityService = {
   async getActivity(): Promise<ActivityItem[]> {

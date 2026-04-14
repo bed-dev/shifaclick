@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { authService } from '@/src/services/authService';
-import { profileService } from '@/src/services/profileService';
-import type { RegisterPayload, UserProfile } from '@/src/types/models';
+import { authService } from '@/services/authService';
+import { profileService } from '@/services/profileService';
+import type { RegisterPayload, UserProfile } from '@/types/models';
 
 interface AuthContextValue {
   user: UserProfile | null;

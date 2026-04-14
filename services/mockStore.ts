@@ -1,4 +1,4 @@
-import type { ActivityItem, FeedItem, UserProfile } from '@/src/types/models';
+import type { ActivityItem, FeedItem, UserProfile } from '@/types/models';
 
 const feedItems: FeedItem[] = [
   {

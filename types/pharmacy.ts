@@ -94,3 +94,50 @@ export interface ScannerUpdatePayload {
   stockStatus: DrugStockStatus;
   unitsLeft: number;
 }
+
+export interface ParsedMedication {
+  id: string;
+  name: string;
+  dosage: string;
+  frequency: string;
+  durationDays: number;
+}
+
+export interface DoctorNoteScanResult {
+  confidence: number;
+  physicianName: string;
+  issuedAt: string;
+  medications: ParsedMedication[];
+}
+
+export interface AddMedicationPayload {
+  name: string;
+  dosage: string;
+  form: DrugForm;
+  quantity: number;
+  notes?: string;
+}
+
+export interface DistributorKpi {
+  label: string;
+  value: string;
+}
+
+export interface DistributorOrder {
+  id: string;
+  pharmacyName: string;
+  city: string;
+  drugName: string;
+  requestedUnits: number;
+  priority: 'urgent' | 'normal';
+  status: 'pending' | 'allocated' | 'in_transit';
+}
+
+export interface DispatchItem {
+  id: string;
+  destination: string;
+  eta: string;
+  packageCount: number;
+  driverName: string;
+  status: 'packing' | 'out_for_delivery' | 'delivered';
+}

@@ -2,8 +2,8 @@ import { ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
-import { AuthProvider } from '@/src/context/AuthContext';
-import { appNavigationTheme, colors, typography } from '@/src/theme/tokens';
+import { AuthProvider } from '@/context/AuthContext';
+import { appNavigationTheme, colors, typography } from '@/theme/tokens';
 
 export default function RootLayout() {
   return (
@@ -31,6 +31,32 @@ export default function RootLayout() {
             options={{
               headerShown: true,
               title: 'New Request',
+              headerStyle: { backgroundColor: colors.surface.card },
+              headerTintColor: colors.text.primary,
+              headerTitleStyle: {
+                fontFamily: typography.fontFamily,
+                fontWeight: '800',
+              },
+            }}
+          />
+          <Stack.Screen
+            name="tools/scan-note"
+            options={{
+              headerShown: true,
+              title: 'Scan Doctor Note',
+              headerStyle: { backgroundColor: colors.surface.card },
+              headerTintColor: colors.text.primary,
+              headerTitleStyle: {
+                fontFamily: typography.fontFamily,
+                fontWeight: '800',
+              },
+            }}
+          />
+          <Stack.Screen
+            name="meds/add"
+            options={{
+              headerShown: true,
+              title: 'Add Medication',
               headerStyle: { backgroundColor: colors.surface.card },
               headerTintColor: colors.text.primary,
               headerTitleStyle: {

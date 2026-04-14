@@ -3,8 +3,8 @@ import { useLocalSearchParams, router } from 'expo-router';
 
 import { CustomButton } from '@/components/common/CustomButton';
 import { StockBadge } from '@/components/pharmacy/StockBadge';
-import { useDrugDetails } from '@/src/hooks/usePharmacy';
-import { colors, radius, spacing, typography } from '@/src/theme/tokens';
+import { useDrugDetails } from '@/hooks/usePharmacy';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function DrugDetailsScreen() {
   const params = useLocalSearchParams<{ id: string }>();

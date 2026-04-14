@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
-import { useMockQuery } from '@/src/hooks/useMockQuery';
-import { feedService } from '@/src/services/feedService';
+import { useMockQuery } from '@/hooks/useMockQuery';
+import { feedService } from '@/services/feedService';
 
 export function useFeed() {
   const queryFn = useCallback(() => feedService.getFeed(), []);
