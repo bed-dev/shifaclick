@@ -7,7 +7,7 @@
     "reset-project": "node ./scripts/reset-project.js",
     "android": "ANDROID_HOME=\"${ANDROID_HOME:-$HOME/Android/Sdk}\" ANDROID_SDK_ROOT=\"${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/Android/Sdk}}\" JAVA_HOME=\"${JAVA_HOME:-$HOME/.gradle/jdks/eclipse_adoptium-17-amd64-linux.2}\" expo run:android",
     "apk": "ANDROID_HOME=\"${ANDROID_HOME:-$HOME/Android/Sdk}\" ANDROID_SDK_ROOT=\"${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/Android/Sdk}}\" JAVA_HOME=\"${JAVA_HOME:-$HOME/.gradle/jdks/eclipse_adoptium-17-amd64-linux.2}\" ./android/gradlew assembleDebug",
-    "apk:release": "ANDROID_HOME=\"${ANDROID_HOME:-$HOME/Android/Sdk}\" ANDROID_SDK_ROOT=\"${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/Android/Sdk}}\" JAVA_HOME=\"${JAVA_HOME:-$HOME/.gradle/jdks/eclipse_adoptium-17-amd64-linux.2}\" ./android/gradlew assembleRelease",
+    "apk:release": "ANDROID_HOME=\"${ANDROID_HOME:-$HOME/Android/Sdk}\" JAVA_HOME=\"$HOME/.gradle/jdks/eclipse_adoptium-17-amd64-linux.2\" cd android && ./gradlew assembleRelease",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
