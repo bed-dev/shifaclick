@@ -25,7 +25,7 @@ const roles: { key: UserRole; label: string; icon: keyof typeof Ionicons.glyphMa
 ];
 
 export default function RegisterScreen() {
-  const { register, isLoading } = useAuth();
+  const { register } = useAuth();
 
   const [firstName, setFirstName] = useState('Yacine');
   const [lastName, setLastName] = useState('Benali');
@@ -34,10 +34,12 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('password123');
   const [role, setRole] = useState<UserRole>('client');
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRegister = async () => {
     try {
       setError(null);
+      setIsSubmitting(true);
       await register({
         firstName,
         lastName,
@@ -50,6 +52,8 @@ export default function RegisterScreen() {
     } catch (registerError) {
       const message = registerError instanceof Error ? registerError.message : 'Unable to create account.';
       setError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -124,7 +128,7 @@ export default function RegisterScreen() {
 
             <CustomButton
               label="Create Account"
-              loading={isLoading}
+              loading={isSubmitting}
               onPress={handleRegister}
               icon={<Ionicons name="person-add-outline" size={16} color="#fff" />}
             />
