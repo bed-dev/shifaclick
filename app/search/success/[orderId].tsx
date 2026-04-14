@@ -13,7 +13,7 @@ export default function OrderSuccessScreen() {
     <View className="flex-1 bg-page p-4">
       {/* Success banner */}
       <View className="mt-2 rounded-2xl border border-status-success-bg bg-status-success-bg p-4">
-        <Text className="text-[17px] font-extrabold text-status-success-text">You're all set</Text>
+        <Text className="text-[17px] font-extrabold text-status-success-text">You&apos;re all set</Text>
         <Text className="mt-1 text-[12px] font-medium text-status-success-text">
           The pharmacy is preparing your order now.
         </Text>

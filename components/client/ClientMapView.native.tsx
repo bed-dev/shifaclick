@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Callout, Marker, UrlTile } from 'react-native-maps';
 
@@ -165,13 +165,13 @@ function ClientMapViewBase({
       showsMyLocationButton={false}
       showsCompass={false}
       showsBuildings={false}
-      mapType={Platform.OS === 'android' ? 'none' : 'standard'}
+      mapType="standard"
+      cacheEnabled
     >
       <UrlTile
-        urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
         maximumZ={19}
         flipY={false}
-        shouldReplaceMapContent
         zIndex={-1}
       />
 

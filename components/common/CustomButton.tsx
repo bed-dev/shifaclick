@@ -48,6 +48,7 @@ export function CustomButton({
 const styles = StyleSheet.create({
   base: {
     minHeight: 44,
+    alignSelf: 'stretch',
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
@@ -78,6 +79,8 @@ const styles = StyleSheet.create({
 const variantStyles = StyleSheet.create({
   primary: {
     backgroundColor: colors.brand.dark,
+    borderWidth: 1,
+    borderColor: '#243240',
   },
   secondary: {
     backgroundColor: colors.brand.primary,

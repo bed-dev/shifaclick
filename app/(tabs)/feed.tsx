@@ -15,12 +15,12 @@ import Toast from "react-native-toast-message";
 
 import { NoConnectionState } from "@/components/common/NoConnectionState";
 import { UploadBox } from "@/components/pharmacy/UploadBox";
-import { ClientMapView } from "@/components/client/ClientMapView";
+import { ClientMapView } from "../../components/client/ClientMapView";
 import { useCreateOrder, useMedicineSuggestions } from "@/hooks/useClientFlow";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useLocationPermission } from "@/hooks/useLocationPermission";
 import { NEARBY_PHARMACY_PINS } from "@/services/clientFlowService";
-import { isNetworkError } from "@/services/http";
+import { getRequestErrorMessage } from "@/services/http";
 
 export default function ClientHomeScreen() {
   const [inputMode, setInputMode] = useState<"text" | "scan">("text");
@@ -32,6 +32,7 @@ export default function ClientHomeScreen() {
   const [selectedPinId, setSelectedPinId] = useState<string>(
     NEARBY_PHARMACY_PINS[0].id,
   );
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const debouncedQuery = useDebouncedValue(medicineName, 300);
 
@@ -58,6 +59,9 @@ export default function ClientHomeScreen() {
   );
 
   const hasSuggestionPanel = suggestionsOpen && medicineName.trim().length >= 2;
+  const searchErrorMessage = suggestionsError
+    ? "Search is unavailable right now. Check your connection and try again."
+    : null;
 
   const pickFromCamera = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -125,13 +129,13 @@ export default function ClientHomeScreen() {
     }
 
     try {
+      setSubmitError(null);
       const response = await createOrder.mutateAsync({
         medicineName,
         quantity,
         notes,
         prescriptionUri,
       });
-
       Toast.show({
         type: "success",
         text1: "Request sent",
@@ -146,13 +150,15 @@ export default function ClientHomeScreen() {
         },
       } as Href);
     } catch (error) {
-      console.log(error);
+      const message = getRequestErrorMessage(
+        error,
+        "Unable to send request. Please try again.",
+      );
+      setSubmitError(message);
       Toast.show({
         type: "error",
         text1: "Unable to send request",
-        text2: isNetworkError(error)
-          ? "No network connection. Please retry."
-          : "Please try again.",
+        text2: message,
       });
     }
   };
@@ -220,7 +226,12 @@ export default function ClientHomeScreen() {
                   <Ionicons name="search-outline" size={16} color="#94A3B8" />
                   <TextInput
                     value={medicineName}
-                    onChangeText={setMedicineName}
+                    onChangeText={(next) => {
+                      setMedicineName(next);
+                      if (submitError) {
+                        setSubmitError(null);
+                      }
+                    }}
                     onFocus={() => setSuggestionsOpen(true)}
                     placeholder="Search medicine"
                     placeholderTextColor="#94A3B8"
@@ -235,8 +246,8 @@ export default function ClientHomeScreen() {
                     {suggestionsError ? (
                       <View className="p-3">
                         <NoConnectionState
-                          title="No Connection"
-                          message="Could not load suggestions."
+                          title="Search unavailable"
+                          message={searchErrorMessage ?? "Could not load suggestions."}
                           onRetry={() => {
                             void refetchSuggestions();
                           }}
@@ -286,6 +297,14 @@ export default function ClientHomeScreen() {
                 ) : null}
               </View>
 
+              {searchErrorMessage ? (
+                <View className="mt-2 rounded-xl border border-status-danger bg-status-danger-bg px-3 py-2.5">
+                  <Text className="text-[12px] font-semibold text-status-danger-text">
+                    {searchErrorMessage}
+                  </Text>
+                </View>
+              ) : null}
+
               {/* Quantity + Notes */}
               <TextInput
                 value={quantity}
@@ -314,6 +333,14 @@ export default function ClientHomeScreen() {
               />
             </View>
           )}
+
+          {submitError ? (
+            <View className="mt-3 rounded-xl border border-status-danger bg-status-danger-bg px-3 py-2.5">
+              <Text className="text-[12px] font-semibold text-status-danger-text">
+                {submitError}
+              </Text>
+            </View>
+          ) : null}
 
           {/* CTA button */}
           <Pressable

@@ -206,7 +206,6 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
     <View style={styles.stepRow}>
       {[1, 2, 3].map((step) => {
         const done = step < currentStep;
-        const active = step === currentStep;
         const reached = step <= currentStep;
 
         return (
