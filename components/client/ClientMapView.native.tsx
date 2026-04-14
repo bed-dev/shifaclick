@@ -27,6 +27,8 @@ interface ClientMapViewProps {
 
 const TILE_URL_TEMPLATE = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
 const TILE_ATTRIBUTION = '© OpenStreetMap contributors © CARTO';
+const ATTRIBUTION_BACKGROUND_COLOR = '#FFFFFFD9';
+const ATTRIBUTION_FONT_SIZE = 9;
 
 function ClientMapViewBase({
   pins,
@@ -341,14 +343,14 @@ const styles = StyleSheet.create({
     right: 6,
     bottom: 6,
     borderRadius: 4,
-    backgroundColor: '#FFFFFFD9',
+    backgroundColor: ATTRIBUTION_BACKGROUND_COLOR,
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
   attributionText: {
     color: colors.text.secondary,
     fontFamily: typography.fontFamily,
-    fontSize: 9,
+    fontSize: ATTRIBUTION_FONT_SIZE,
     fontWeight: '600',
   },
   calloutCard: {
