@@ -25,6 +25,9 @@ interface ClientMapViewProps {
   onSelectPin?: (pin: MapPin) => void;
 }
 
+const TILE_URL_TEMPLATE = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+const TILE_ATTRIBUTION = '© OpenStreetMap contributors © CARTO';
+
 function ClientMapViewBase({
   pins,
   selectedPinId,
@@ -148,53 +151,59 @@ function ClientMapViewBase({
   );
 
   const renderMap = (mapRef: React.RefObject<MapView | null>) => (
-    <MapView
-      ref={mapRef}
-      style={StyleSheet.absoluteFill}
-      initialRegion={initialRegion}
-      loadingEnabled
-      rotateEnabled={false}
-      pitchEnabled={false}
-      toolbarEnabled={false}
-      moveOnMarkerPress={false}
-      onMapReady={() => {
-        fitToPharmacies(mapRef.current);
-        focusOnSelected(mapRef.current);
-      }}
-      showsUserLocation={Boolean(userLocation && !locationDenied)}
-      showsMyLocationButton={false}
-      showsCompass={false}
-      showsBuildings={false}
-      mapType={Platform.OS === 'android' ? 'none' : 'standard'}
-    >
-      <UrlTile
-        urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maximumZ={19}
-        flipY={false}
-        shouldReplaceMapContent
-        zIndex={-1}
-      />
+    <View style={styles.mapSurface}>
+      <MapView
+        ref={mapRef}
+        style={StyleSheet.absoluteFill}
+        initialRegion={initialRegion}
+        loadingEnabled
+        rotateEnabled={false}
+        pitchEnabled={false}
+        toolbarEnabled={false}
+        moveOnMarkerPress={false}
+        onMapReady={() => {
+          fitToPharmacies(mapRef.current);
+          focusOnSelected(mapRef.current);
+        }}
+        showsUserLocation={Boolean(userLocation && !locationDenied)}
+        showsMyLocationButton={false}
+        showsCompass={false}
+        showsBuildings={false}
+        mapType={Platform.OS === 'android' ? 'none' : 'standard'}
+      >
+        <UrlTile
+          urlTemplate={TILE_URL_TEMPLATE}
+          maximumZ={19}
+          flipY={false}
+          shouldReplaceMapContent
+          zIndex={-1}
+        />
 
-      {pins.map((pin) => {
-        const selected = pin.id === selectedPinId;
+        {pins.map((pin) => {
+          const selected = pin.id === selectedPinId;
 
-        return (
-          <Marker
-            key={pin.id}
-            coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
-            onPress={() => handleSelectPin(pin)}
-            pinColor={selected ? colors.brand.aqua : colors.brand.darkBlue}
-          >
-            <Callout tooltip={false}>
-              <View style={styles.calloutCard}>
-                <Text style={styles.calloutTitle}>{pin.name}</Text>
-                <Text style={styles.calloutMeta}>{pin.distanceKm.toFixed(1)} km away</Text>
-              </View>
-            </Callout>
-          </Marker>
-        );
-      })}
-    </MapView>
+          return (
+            <Marker
+              key={pin.id}
+              coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
+              onPress={() => handleSelectPin(pin)}
+              pinColor={selected ? colors.brand.aqua : colors.brand.darkBlue}
+            >
+              <Callout tooltip={false}>
+                <View style={styles.calloutCard}>
+                  <Text style={styles.calloutTitle}>{pin.name}</Text>
+                  <Text style={styles.calloutMeta}>{pin.distanceKm.toFixed(1)} km away</Text>
+                </View>
+              </Callout>
+            </Marker>
+          );
+        })}
+      </MapView>
+
+      <View pointerEvents="none" style={styles.attributionWrap}>
+        <Text style={styles.attributionText}>{TILE_ATTRIBUTION}</Text>
+      </View>
+    </View>
   );
 
   return (
@@ -323,6 +332,24 @@ const styles = StyleSheet.create({
   mapArea: {
     height: 240,
     backgroundColor: '#E6EEF5',
+  },
+  mapSurface: {
+    flex: 1,
+  },
+  attributionWrap: {
+    position: 'absolute',
+    right: 6,
+    bottom: 6,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFFD9',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  attributionText: {
+    color: colors.text.secondary,
+    fontFamily: typography.fontFamily,
+    fontSize: 9,
+    fontWeight: '600',
   },
   calloutCard: {
     paddingHorizontal: 8,
